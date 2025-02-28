@@ -132,21 +132,24 @@ h1 {
 }
 
 .platform-icon {
-    font-size: 14px;
+    font-size: 18px;
     color: #8e8e8e;
     margin-left: auto;
 }
 
 .twitter {
     color: #1DA1F2;
+    font-size: 20px;
 }
 
 .facebook {
     color: #4267B2;
+    font-size: 20px;
 }
 
 .instagram {
     color: #C13584;
+    font-size: 20px;
 }
 
 .post-body {
@@ -343,6 +346,87 @@ h1 {
     border-radius: 10px;
     box-shadow: 0 2px 8px rgba(0, 0, 0, 0.05);
     color: #8e8e8e;
+}
+
+.loading-message {
+    text-align: center;
+    padding: 30px;
+    background-color: white;
+    border-radius: 10px;
+    box-shadow: 0 2px 8px rgba(0, 0, 0, 0.05);
+    color: #8e8e8e;
+}
+
+.loading {
+    text-align: center;
+    padding: 40px;
+    font-size: 16px;
+    color: #8e8e8e;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+}
+
+.loading::after {
+    content: "";
+    width: 30px;
+    height: 30px;
+    border: 3px solid #dbdbdb;
+    border-radius: 50%;
+    border-top-color: #8e8e8e;
+    animation: spinner 1s linear infinite;
+    margin-top: 20px;
+}
+
+@keyframes spinner {
+    to {
+        transform: rotate(360deg);
+    }
+}
+
+/* Instagram embed styling */
+.instagram-container {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    max-width: 500px;
+    margin: 0 auto;
+    padding: 20px;
+}
+
+.instagram-header {
+    display: flex;
+    align-items: center;
+    width: 100%;
+    padding-bottom: 15px;
+    border-bottom: 1px solid #efefef;
+    margin-bottom: 20px;
+}
+
+.instagram-avatar {
+    width: 60px;
+    height: 60px;
+    border-radius: 50%;
+    margin-right: 15px;
+    object-fit: cover;
+}
+
+.instagram-info {
+    flex-grow: 1;
+}
+
+.instagram-username {
+    font-weight: 600;
+    font-size: 16px;
+    margin-bottom: 5px;
+}
+
+.instagram-feed {
+    width: 100%;
+    max-height: 400px;
+    overflow-y: auto;
+    border: 1px solid #efefef;
+    border-radius: 5px;
 }
 
 /* Responsive adjustments */
