@@ -125,75 +125,52 @@ window.twttr = (function(d, s, id) {
       
       // Create embedded content based on platform
       if (post.accountUrl.includes('twitter.com') || post.accountUrl.includes('x.com')) {
-          // Extract username from Twitter URL
-          let username = '';
-          if (post.accountUrl.includes('twitter.com/')) {
-              username = post.accountUrl.split('twitter.com/')[1].replace(/\/$/, '');
-          } else if (post.accountUrl.includes('x.com/')) {
-              username = post.accountUrl.split('x.com/')[1].replace(/\/$/, '');
-          }
-          
-          // Clean up username in case it has query parameters
-          if (username.includes('?')) {
-              username = username.split('?')[0];
-          }
-          
-          console.log('Embedding Twitter timeline for:', username);
-          
-          // Create a container for the Twitter timeline
-          const twitterContainer = document.createElement('div');
-          twitterContainer.className = 'twitter-container';
-          embeddedContent.innerHTML = '';
-          embeddedContent.appendChild(twitterContainer);
-          
-          // Add a loading indicator
-          twitterContainer.innerHTML = '<div class="loading">Loading tweets...</div>';
-          
-          // Use the Twitter widget API to create the timeline properly
-          if (window.twttr && window.twttr.widgets) {
-              twttr.widgets.createTimeline(
-                  {
-                      sourceType: 'profile',
-                      screenName: username
-                  },
-                  twitterContainer,
-                  {
-                      height: 500,
-                      chrome: 'nofooter',
-                      theme: 'light'
-                  }
-              ).then(function(el) {
-                  console.log('Twitter timeline loaded successfully');
-              }).catch(function(e) {
-                  console.error('Error loading Twitter timeline:', e);
-                  twitterContainer.innerHTML = `<p>Could not load tweets from ${username}. Please try again later.</p>`;
-              });
-          } else {
-              // If Twitter widgets API isn't loaded yet
-              twitterContainer.innerHTML = `
-                  <p>Loading Twitter widget...</p>
-                  <script>
-                      window.addEventListener('load', function() {
-                          if (window.twttr) {
-                              twttr.ready(function() {
-                                  twttr.widgets.createTimeline(
-                                      {
-                                          sourceType: 'profile',
-                                          screenName: '${username}'
-                                      },
-                                      document.querySelector('.twitter-container'),
-                                      {
-                                          height: 500,
-                                          chrome: 'nofooter',
-                                          theme: 'light'
-                                      }
-                                  );
-                              });
-                          }
-                      });
-                  </script>
-              `;
-          }
+        // Extract username from Twitter URL
+        let username = '';
+        if (post.accountUrl.includes('twitter.com/')) {
+            username = post.accountUrl.split('twitter.com/')[1].replace(/\/$/, '');
+        } else if (post.accountUrl.includes('x.com/')) {
+            username = post.accountUrl.split('x.com/')[1].replace(/\/$/, '');
+        }
+        
+        // Clean up username in case it has query parameters
+        if (username.includes('?')) {
+            username = username.split('?')[0];
+        }
+        
+        console.log('Embedding Twitter timeline for:', username);
+        
+        // Clear previous content and show loading
+        embeddedContent.innerHTML = '<div class="loading">Loading tweets...</div>';
+        
+        // Use the Twitter oEmbed API to get the proper embed code
+        const encodedUrl = encodeURIComponent(`https://twitter.com/${username}`);
+        fetch(`https://publish.twitter.com/oembed?url=${encodedUrl}&omit_script=false&chrome=nofooter&dnt=true`)
+            .then(response => {
+                if (!response.ok) {
+                    throw new Error(`HTTP error! Status: ${response.status}`);
+                }
+                return response.json();
+            })
+            .then(data => {
+                // The HTML returned by the API includes the necessary script and properly formatted embed code
+                embeddedContent.innerHTML = data.html;
+                
+                // Force script execution - necessary because inserting HTML with scripts doesn't execute them
+                const scripts = embeddedContent.querySelectorAll('script');
+                scripts.forEach(oldScript => {
+                    const newScript = document.createElement('script');
+                    Array.from(oldScript.attributes).forEach(attr => {
+                        newScript.setAttribute(attr.name, attr.value);
+                    });
+                    newScript.appendChild(document.createTextNode(oldScript.innerHTML));
+                    oldScript.parentNode.replaceChild(newScript, oldScript);
+                });
+            })
+            .catch(error => {
+                console.error('Error fetching Twitter embed:', error);
+                embeddedContent.innerHTML = `<p>Could not load tweets from ${username}. Error: ${error.message}</p>`;
+            });
       } else if (post.accountUrl.includes('instagram.com')) {
           // Instagram embedding - using embed API
           const username = post.accountUrl.split('instagram.com/')[1].replace(/\/$/, '');
