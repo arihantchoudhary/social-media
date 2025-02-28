@@ -25,7 +25,10 @@ app.post('/api/search', async (req, res) => {
       });
     }
     
-    // Call Anthropic API
+    console.log('Searching for related terms to:', query);
+    console.log('Available keywords:', keywords);
+    
+    // Call Anthropic API with improved prompt
     const response = await axios.post(
       'https://api.anthropic.com/v1/messages',
       {
@@ -34,10 +37,20 @@ app.post('/api/search', async (req, res) => {
         messages: [
           {
             role: "user",
-            content: `I have a list of keywords: ${keywords.join(', ')}. 
-                      Given the search query: "${query}", 
-                      return ONLY the keywords from the list that are semantically related or similar to the query.
-                      Format your response as a JSON array like ["keyword1", "keyword2"]. Only include the array, no other text.`
+            content: `You are a semantic search assistant helping to find related keywords.
+
+I'm searching for: "${query}"
+
+Here are the available keywords in my database:
+${keywords.join(', ')}
+
+Please identify keywords from the list that are semantically related to my search query "${query}". Think broadly about the relationship - include direct synonyms, broader/narrower terms, and conceptually related ideas.
+
+For example:
+- If I search "space" you might return ["astronomy", "planets", "stars", "NASA"]
+- If I search "cooking" you might return ["food", "recipes", "kitchen", "chef"]
+
+Only return keywords that exist in the provided list. Format your response as a JSON array like ["keyword1", "keyword2"]. Include only the array, no explanations.`
           }
         ]
       },
@@ -52,6 +65,7 @@ app.post('/api/search', async (req, res) => {
     
     // Extract the generated content from the response
     const content = response.data.content[0].text;
+    console.log('Claude response:', content);
     
     // Parse the JSON array from the response
     let relatedKeywords;
@@ -70,7 +84,7 @@ app.post('/api/search', async (req, res) => {
     res.json({ relatedKeywords });
   } catch (error) {
     console.error('Error calling Anthropic API:', error.message);
-    res.status(500).json({ error: 'Failed to process semantic search' });
+    res.status(500).json({ error: 'Failed to process semantic search', details: error.message });
   }
 });
 

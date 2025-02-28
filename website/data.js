@@ -8,7 +8,8 @@ const postsData = [
         username: "Elon Musk",
         accountUrl: "https://twitter.com/elonmusk",
         profilePicture: "https://pbs.twimg.com/profile_images/1683325380441128960/yRsRRjGO_400x400.jpg",
-        userInteraction: 0  // 0 = neutral, 1 = liked, -1 = disliked
+        userInteraction: 0,  // 0 = neutral, 1 = liked, -1 = disliked
+        isFriend: false      // New field to indicate if this is a "friend"
     },
     {
         url: "https://twitter.com/BillGates/status/1442908542798258177",
@@ -18,7 +19,8 @@ const postsData = [
         username: "Bill Gates",
         accountUrl: "https://twitter.com/BillGates",
         profilePicture: "https://pbs.twimg.com/profile_images/1564398871996174336/M-hffw5a_400x400.jpg",
-        userInteraction: 0
+        userInteraction: 0,
+        isFriend: true
     },
     {
         url: "https://www.instagram.com/p/CvA2fN4NXLL/",
@@ -28,7 +30,8 @@ const postsData = [
         username: "National Geographic",
         accountUrl: "https://www.instagram.com/natgeo/",
         profilePicture: "https://instagram.fphx1-2.fna.fbcdn.net/v/t51.2885-19/44222267_345707439493438_2446069589823094784_n.jpg",
-        userInteraction: 0
+        userInteraction: 0,
+        isFriend: false
     },
     {
         url: "https://twitter.com/BarackObama/status/1444367348225445890",
@@ -38,7 +41,8 @@ const postsData = [
         username: "Barack Obama",
         accountUrl: "https://twitter.com/BarackObama",
         profilePicture: "https://pbs.twimg.com/profile_images/1329647026807543809/2SGvnHYV_400x400.jpg",
-        userInteraction: 0
+        userInteraction: 0,
+        isFriend: true
     },
     {
         url: "https://www.instagram.com/p/CwfTqZSLwIB/",
@@ -48,17 +52,19 @@ const postsData = [
         username: "Headspace",
         accountUrl: "https://www.instagram.com/headspace/",
         profilePicture: "https://instagram.fphx1-1.fna.fbcdn.net/v/t51.2885-19/11356793_110198522644721_22903468_a.jpg",
-        userInteraction: 0
+        userInteraction: 0,
+        isFriend: true
     },
     {
         url: "https://twitter.com/NASA/status/1445509856694190080",
         summary: "What's up in the night sky this month? Look up to see the annual Orionid meteor shower, the best view of distant Uranus, and an interesting gathering of the Moon and planets.",
-        keywords: ["astronomy", "meteor shower", "planets", "night sky"],
+        keywords: ["astronomy", "meteor shower", "planets", "night sky", "stars"],
         rank: 82,
         username: "NASA",
         accountUrl: "https://twitter.com/NASA",
         profilePicture: "https://pbs.twimg.com/profile_images/1321163587679784960/0ZxKlEKB_400x400.jpg",
-        userInteraction: 0
+        userInteraction: 0,
+        isFriend: false
     },
     {
         url: "https://www.instagram.com/p/CwcRN9HpXUr/",
@@ -68,6 +74,7 @@ const postsData = [
         username: "Yoga with Adriene",
         accountUrl: "https://www.instagram.com/adrienelouise/",
         profilePicture: "https://instagram.fphx1-2.fna.fbcdn.net/v/t51.2885-19/74922053_2476338445813561_3444498771883917312_n.jpg",
-        userInteraction: 0
+        userInteraction: 0,
+        isFriend: true
     }
 ];

@@ -7,23 +7,6 @@
     <link rel="stylesheet" href="styles.css">
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/5.15.4/css/all.min.css">
     <script src="https://hammerjs.github.io/dist/hammer.min.js"></script>
-    <!-- Twitter widget API -->
-    <script>
-        window.twttr = (function(d, s, id) {
-            var js, fjs = d.getElementsByTagName(s)[0],
-                t = window.twttr || {};
-            if (d.getElementById(id)) return t;
-            js = d.createElement(s);
-            js.id = id;
-            js.src = "https://platform.twitter.com/widgets.js";
-            fjs.parentNode.insertBefore(js, fjs);
-            t._e = [];
-            t.ready = function(f) {
-                t._e.push(f);
-            };
-            return t;
-        }(document, "script", "twitter-wjs"));
-    </script>
 </head>
 <body>
     <div class="container">
@@ -34,7 +17,15 @@
                     <input type="text" id="filter-input" placeholder="Filter by keywords...">
                     <button id="filter-button"><i class="fas fa-search"></i></button>
                 </div>
+                <!-- New suggestion buttons will appear here -->
+                <div id="search-suggestions" class="search-suggestions"></div>
                 <div class="filter-instructions">Try searching: politics, wellness, astronomy</div>
+            </div>
+            <!-- New toggle for friends/all posts -->
+            <div class="view-toggle">
+                <span>View: </span>
+                <button id="all-posts-btn" class="toggle-btn active">All Posts</button>
+                <button id="friends-posts-btn" class="toggle-btn">Friends Only</button>
             </div>
         </header>
         <main>

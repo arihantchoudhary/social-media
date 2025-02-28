@@ -73,6 +73,69 @@ h1 {
     padding: 5px;
 }
 
+/* New styles for search suggestions */
+.search-suggestions {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 8px;
+    margin: 8px 0;
+}
+
+.suggestion-tag {
+    background-color: #f0f2f5;
+    border: none;
+    border-radius: 16px;
+    padding: 6px 12px;
+    font-size: 12px;
+    color: #262626;
+    cursor: pointer;
+    transition: all 0.2s ease;
+    white-space: nowrap;
+    max-width: 120px;
+    overflow: hidden;
+    text-overflow: ellipsis;
+}
+
+.suggestion-tag:hover {
+    background-color: #e4e6eb;
+}
+
+.suggestion-tag.active {
+    background-color: #0095f6;
+    color: white;
+}
+
+/* New styles for view toggle */
+.view-toggle {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    gap: 10px;
+    margin-top: 15px;
+    padding-top: 10px;
+    border-top: 1px solid #f0f2f5;
+}
+
+.toggle-btn {
+    background-color: #f0f2f5;
+    border: none;
+    border-radius: 16px;
+    padding: 6px 12px;
+    font-size: 13px;
+    color: #262626;
+    cursor: pointer;
+    transition: all 0.2s ease;
+}
+
+.toggle-btn:hover {
+    background-color: #e4e6eb;
+}
+
+.toggle-btn.active {
+    background-color: #0095f6;
+    color: white;
+}
+
 .filter-instructions {
     font-size: 12px;
     color: #8e8e8e;
@@ -129,6 +192,16 @@ h1 {
     font-weight: 600;
     font-size: 14px;
     color: #262626;
+}
+
+.friend-badge {
+    font-size: 10px;
+    color: white;
+    background-color: #0095f6;
+    border-radius: 10px;
+    padding: 2px 6px;
+    margin-left: 6px;
+    font-weight: normal;
 }
 
 .platform-icon {
@@ -339,6 +412,18 @@ h1 {
     border: none;
 }
 
+.search-status {
+    margin-top: 5px;
+    font-size: 11px;
+    color: #8e8e8e;
+    text-align: right;
+    font-style: italic;
+}
+
+.api-searching {
+    color: #0095f6;
+}
+
 .no-results {
     text-align: center;
     padding: 30px;
@@ -429,6 +514,15 @@ h1 {
     border-radius: 5px;
 }
 
+/* Twitter embed styling - direct iframe approach */
+.twitter-container {
+    width: 100%;
+    height: 500px;
+    overflow: hidden;
+    border-radius: 10px;
+    margin: 0 auto;
+}
+
 /* Responsive adjustments */
 @media (max-width: 600px) {
     .container {
@@ -463,5 +557,15 @@ h1 {
 
     #embedded-content iframe {
         height: 350px;
+    }
+    
+    .view-toggle {
+        flex-wrap: wrap;
+        justify-content: center;
+    }
+    
+    .suggestion-tag {
+        font-size: 11px;
+        padding: 4px 8px;
     }
 }
