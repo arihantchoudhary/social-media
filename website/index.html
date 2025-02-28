@@ -17,15 +17,17 @@
                     <input type="text" id="filter-input" placeholder="Filter by keywords...">
                     <button id="filter-button"><i class="fas fa-search"></i></button>
                 </div>
-                <!-- New suggestion buttons will appear here -->
+                <!-- New suggestion buttons container -->
                 <div id="search-suggestions" class="search-suggestions"></div>
                 <div class="filter-instructions">Try searching: politics, wellness, astronomy</div>
             </div>
-            <!-- New toggle for friends/all posts -->
-            <div class="view-toggle">
-                <span>View: </span>
-                <button id="all-posts-btn" class="toggle-btn active">All Posts</button>
-                <button id="friends-posts-btn" class="toggle-btn">Friends Only</button>
+            <!-- Replaced buttons with a toggle switch -->
+            <div class="view-toggle-container">
+                <span>Friends Only</span>
+                <label class="switch">
+                    <input type="checkbox" id="friends-toggle">
+                    <span class="slider round"></span>
+                </label>
             </div>
         </header>
         <main>
