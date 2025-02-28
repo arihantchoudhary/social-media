@@ -76,5 +76,16 @@ const postsData = [
         profilePicture: "https://instagram.fphx1-2.fna.fbcdn.net/v/t51.2885-19/74922053_2476338445813561_3444498771883917312_n.jpg",
         userInteraction: 0,
         isFriend: true
+    },
+    {
+        url: "https://twitter.com/XDevelopers/status/1615024558673960961",
+        summary: "Introducing our new developer portal! Find all the tools and resources you need to build with the Twitter API in one place.",
+        keywords: ["technology", "development", "API", "coding"],
+        rank: 85,
+        username: "Twitter Developers",
+        accountUrl: "https://twitter.com/XDevelopers",
+        profilePicture: "https://pbs.twimg.com/profile_images/1683480286128369664/dWfPkPJ5_400x400.jpg",
+        userInteraction: 0,
+        isFriend: true
     }
 ];

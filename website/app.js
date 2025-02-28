@@ -106,19 +106,18 @@ function openAccountModal(post) {
     
     // Create embedded content based on platform
     if (post.accountUrl.includes('twitter.com')) {
-        // Twitter embedding using direct iframe to the profile
+        // Twitter embedding using Twitter's official embedding code
         const username = post.accountUrl.split('twitter.com/')[1].replace(/\/$/, '');
         
         embeddedContent.innerHTML = `
             <div class="twitter-container">
-                <iframe 
-                    src="https://twitter.com/${username}" 
-                    width="100%" 
-                    height="100%" 
-                    frameborder="0"
-                    allowtransparency="true"
-                    allowfullscreen="true">
-                </iframe>
+                <a class="twitter-timeline" 
+                   data-height="500" 
+                   data-theme="light" 
+                   href="https://twitter.com/${username}?ref_src=twsrc%5Etfw">
+                   Tweets by ${username}
+                </a>
+                <script async src="https://platform.twitter.com/widgets.js" charset="utf-8"></script>
             </div>
         `;
     } else if (post.accountUrl.includes('instagram.com')) {
@@ -171,7 +170,6 @@ function openAccountModal(post) {
         }
     };
 }
-
 // Function to initialize swipe gestures
 function initSwipeGestures(postElement) {
     const hammer = new Hammer(postElement);
