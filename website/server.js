@@ -110,14 +110,38 @@ app.post('/api/save-credentials', (req, res) => {
             return res.status(400).json({ error: 'Account data is required' });
         }
         
-        // In a real app, you would securely store these credentials
-        // For this demo, we'll just acknowledge receipt
-        console.log('Received social media credentials');
+        // Save credentials to a file for persistence
+        fs.writeFileSync(path.join(__dirname, '..', 'social_media_credentials.json'), JSON.stringify(accounts, null, 2));
         
-        res.json({ success: true, message: 'Credentials received' });
+        // Store in memory for use with other scripts
+        global.socialMediaAccounts = accounts;
+        
+        console.log('Social media credentials saved successfully');
+        
+        res.json({ success: true, message: 'Credentials saved successfully' });
     } catch (error) {
         console.error('Error saving credentials:', error);
         res.status(500).json({ error: 'Failed to save credentials' });
+    }
+});
+
+// API endpoint to get social media credentials
+app.get('/api/get-credentials', (req, res) => {
+    try {
+        const credentialsPath = path.join(__dirname, '..', 'social_media_credentials.json');
+        
+        if (!fs.existsSync(credentialsPath)) {
+            return res.status(404).json({ error: 'Credentials not found' });
+        }
+        
+        // Read credentials from file
+        const credentialsContent = fs.readFileSync(credentialsPath, 'utf8');
+        const accounts = JSON.parse(credentialsContent);
+        
+        res.json({ success: true, accounts });
+    } catch (error) {
+        console.error('Error getting credentials:', error);
+        res.status(500).json({ error: 'Failed to get credentials' });
     }
 });
 
@@ -297,13 +321,40 @@ app.post('/api/submit-feedback', (req, res) => {
             return res.status(400).json({ error: 'Post ID and feedback type are required' });
         }
         
-        // In a real app, you would store this feedback in a database
-        console.log(`Received feedback for post ${postId}: ${feedbackType}`);
-        if (textFeedback) {
-            console.log(`Feedback text: ${textFeedback}`);
-        }
+        // Connect to the user_feedback database
+        const feedbackDb = new sqlite3.Database(path.join(__dirname, '..', 'user_feedback.db'));
         
-        res.json({ success: true, message: 'Feedback submitted' });
+        // Create the user_feedback table if it doesn't exist
+        feedbackDb.run(`
+            CREATE TABLE IF NOT EXISTS user_feedback (
+                id INTEGER PRIMARY KEY AUTOINCREMENT,
+                post_id INTEGER,
+                feedback_type TEXT,
+                text_feedback TEXT,
+                feedback_timestamp TIMESTAMP DEFAULT CURRENT_TIMESTAMP
+            )
+        `);
+        
+        // Insert the feedback into the database
+        feedbackDb.run(
+            `INSERT INTO user_feedback (post_id, feedback_type, text_feedback) VALUES (?, ?, ?)`,
+            [postId, feedbackType, textFeedback || null],
+            function(err) {
+                if (err) {
+                    console.error('Error inserting feedback into database:', err);
+                    feedbackDb.close();
+                    return res.status(500).json({ error: 'Failed to save feedback to database' });
+                }
+                
+                console.log(`Saved feedback for post ${postId}: ${feedbackType} (ID: ${this.lastID})`);
+                if (textFeedback) {
+                    console.log(`Feedback text: ${textFeedback}`);
+                }
+                
+                feedbackDb.close();
+                res.json({ success: true, message: 'Feedback submitted and saved to database' });
+            }
+        );
     } catch (error) {
         console.error('Error submitting feedback:', error);
         res.status(500).json({ error: 'Failed to submit feedback' });
@@ -849,12 +900,28 @@ function loadSavedProfile() {
     }
 }
 
+// Load saved social media credentials on startup
+function loadSavedCredentials() {
+    try {
+        const credentialsPath = path.join(__dirname, '..', 'social_media_credentials.json');
+        
+        if (fs.existsSync(credentialsPath)) {
+            const credentialsData = fs.readFileSync(credentialsPath, 'utf8');
+            global.socialMediaAccounts = JSON.parse(credentialsData);
+            console.log('Loaded saved social media credentials');
+        }
+    } catch (error) {
+        console.error('Error loading saved credentials:', error);
+    }
+}
+
 // Start the server
 app.listen(PORT, () => {
     console.log(`Server running on http://localhost:${PORT}`);
     console.log(`Open your browser and navigate to http://localhost:${PORT}/index.html`);
     
-    // Load saved profile and settings
+    // Load saved profile, settings, and credentials
     loadSavedProfile();
     loadSavedSettings();
+    loadSavedCredentials();
 });

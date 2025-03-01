@@ -186,8 +186,49 @@ async function loadSavedProfileData() {
             loadProfileFromLocalStorage();
         }
         
-        // Load settings and accounts from localStorage (these are still stored there)
-        loadSettingsAndAccountsFromLocalStorage();
+        // Load social media credentials from server
+        try {
+            const credentialsResponse = await fetch('/api/get-credentials');
+            
+            if (credentialsResponse.ok) {
+                const result = await credentialsResponse.json();
+                
+                if (result.success && result.accounts) {
+                    const accounts = result.accounts;
+                    
+                    // Update the accounts state
+                    profileState.accounts = { ...profileState.accounts, ...accounts };
+                    
+                    // Fill in the account fields
+                    if (accounts.twitter) {
+                        document.getElementById('twitter-username').value = accounts.twitter.username || '';
+                        document.getElementById('twitter-password').value = accounts.twitter.password || '';
+                    }
+                    
+                    if (accounts.instagram) {
+                        document.getElementById('instagram-username').value = accounts.instagram.username || '';
+                        document.getElementById('instagram-password').value = accounts.instagram.password || '';
+                    }
+                    
+                    if (accounts.facebook) {
+                        document.getElementById('facebook-username').value = accounts.facebook.username || '';
+                        document.getElementById('facebook-password').value = accounts.facebook.password || '';
+                    }
+                    
+                    console.log('Successfully loaded credentials from server');
+                }
+            } else {
+                console.warn('Failed to load credentials from server, falling back to localStorage');
+                loadAccountsFromLocalStorage();
+            }
+        } catch (error) {
+            console.error('Error fetching credentials from server:', error);
+            console.warn('Falling back to localStorage');
+            loadAccountsFromLocalStorage();
+        }
+        
+        // Load settings from localStorage
+        loadSettingsFromLocalStorage();
     } catch (error) {
         console.error('Error loading saved profile data:', error);
     }
@@ -241,10 +282,9 @@ function loadProfileFromLocalStorage() {
     }
 }
 
-// Load settings and accounts from localStorage
-function loadSettingsAndAccountsFromLocalStorage() {
+// Load accounts from localStorage as a fallback
+function loadAccountsFromLocalStorage() {
     try {
-        const savedSettings = localStorage.getItem('userSettings');
         const savedAccounts = localStorage.getItem('socialMediaAccounts');
         
         // Load saved social media accounts
@@ -271,6 +311,15 @@ function loadSettingsAndAccountsFromLocalStorage() {
                 }
             }
         }
+    } catch (error) {
+        console.error('Error loading accounts from localStorage:', error);
+    }
+}
+
+// Load settings from localStorage
+function loadSettingsFromLocalStorage() {
+    try {
+        const savedSettings = localStorage.getItem('userSettings');
         
         // Load saved settings
         if (savedSettings) {
@@ -302,7 +351,7 @@ function loadSettingsAndAccountsFromLocalStorage() {
             }
         }
     } catch (error) {
-        console.error('Error loading settings and accounts from localStorage:', error);
+        console.error('Error loading settings from localStorage:', error);
     }
 }
 

@@ -123,6 +123,9 @@ ${profile.dislikes.map(dislike => `- ${dislike}`).join('\n')}
      */
     saveSocialMediaCredentials: async function(accounts) {
         try {
+            // Save to localStorage for backup (in a real app, you would never do this with passwords)
+            localStorage.setItem('socialMediaAccounts', JSON.stringify(accounts));
+            
             // Save the credentials to the server
             const response = await fetch('/api/save-credentials', {
                 method: 'POST',
@@ -143,10 +146,44 @@ ${profile.dislikes.map(dislike => `- ${dislike}`).join('\n')}
             // For local testing, simulate a successful response
             console.log('Simulating successful credentials save');
             
-            // Save to localStorage for testing (in a real app, you would never do this with passwords)
-            localStorage.setItem('socialMediaAccounts', JSON.stringify(accounts));
-            
             return { success: true };
+        }
+    },
+    
+    /**
+     * Load social media credentials
+     * 
+     * @returns {Promise} - A promise that resolves with the credentials
+     */
+    loadSocialMediaCredentials: async function() {
+        try {
+            // Fetch credentials from the server
+            const response = await fetch('/api/get-credentials');
+            
+            if (!response.ok) {
+                throw new Error('Failed to load social media credentials');
+            }
+            
+            const data = await response.json();
+            
+            // Save to localStorage for backup
+            if (data.success && data.accounts) {
+                localStorage.setItem('socialMediaAccounts', JSON.stringify(data.accounts));
+            }
+            
+            return data;
+        } catch (error) {
+            console.error('Error loading social media credentials:', error);
+            
+            // Try to load from localStorage as fallback
+            const accounts = localStorage.getItem('socialMediaAccounts');
+            if (accounts) {
+                console.log('Loading credentials from localStorage');
+                return { success: true, accounts: JSON.parse(accounts) };
+            }
+            
+            // Return empty accounts if nothing found
+            return { success: false, accounts: {} };
         }
     },
     
