@@ -31,13 +31,35 @@ def load_keywords(keywords_file='keywords.txt'):
         print(f"Keywords file '{keywords_file}' not found.")
         return []
 
-def keyword_finder_llm(user_query: str, keywords: List[str]) -> List[str]:
+def load_user_profile():
+    """Load the user profile, preferring dynamic profile if available."""
+    # Try to load dynamic profile first
+    try:
+        if os.path.exists("dynamic_user_profile.md"):
+            print("Using dynamic user profile...")
+            with open("dynamic_user_profile.md", "r") as file:
+                return file.read()
+    except Exception as e:
+        print(f"Error loading dynamic user profile: {e}")
+        # Fall back to base profile
+    
+    # Load base profile if dynamic profile not available or failed to load
+    try:
+        print("Using base user profile...")
+        with open("user_profile.txt", "r") as file:
+            return file.read()
+    except Exception as e:
+        print(f"Error loading base user profile: {e}")
+        return None
+
+def keyword_finder_llm(user_query: str, keywords: List[str], user_profile: str = None) -> List[str]:
     """
     Call the LLM to find which of the existing keywords are most relevant to the user query.
     
     Args:
         user_query: The user's query string describing what content they're looking for
         keywords: List of available keywords from keywords.txt
+        user_profile: Optional user profile to help with keyword selection
         
     Returns:
         List of the most relevant keywords from the available keywords list
@@ -60,8 +82,12 @@ def keyword_finder_llm(user_query: str, keywords: List[str]) -> List[str]:
                 
                 Available keywords: {keywords_str}
                 
+                {f"USER PROFILE:\n{user_profile}\n\n" if user_profile else ""}
+                
                 IMPORTANT: You must return a MINIMUM of 2 and a MAXIMUM of 5 keywords, even if they are only somewhat related.
                 Always select the most relevant keywords possible from the available list.
+                
+                If a user profile is provided, consider the user's interests and preferences when selecting keywords.
                 
                 Return only the relevant keywords as a JSON array of strings, with no additional text or explanation.
                 Only return keywords from the provided list.
@@ -467,12 +493,76 @@ def main():
     
     print(f"Loaded {len(keywords)} keywords from keywords.txt.")
     
+    # Load user profile
+    user_profile = load_user_profile()
+    if user_profile:
+        print("User profile loaded successfully.")
+    else:
+        print("No user profile found. Proceeding without user profile.")
+    
     # Get user query
     user_query = input("What content are you looking for? ")
     
     # Call keyword_finder_llm to find relevant keywords
     print("Calling keyword_finder_llm to find relevant keywords...")
-    relevant_keywords = keyword_finder_llm(user_query, keywords)
+    relevant_keywords = keyword_finder_llm(user_query, keywords, user_profile)
+    
+    # Ensure we have between 2 and 5 keywords
+    relevant_keywords = ensure_keyword_count(relevant_keywords, keywords)
+    
+    print(f"Found {len(relevant_keywords)} relevant keywords:")
+    for keyword in relevant_keywords:
+        print(f"- {keyword}")
+    
+    # Get posts by keywords
+    print("\nFinding posts with related keywords...")
+    matching_posts = get_posts_by_keywords(relevant_keywords)
+    
+    if not matching_posts:
+        print("No matching posts found.")
+        return
+    
+    print(f"Found {len(matching_posts)} matching posts.")
+    
+    # Rank posts by relevance, ranking, and recency
+    print("Ranking posts by relevance, ranking, and recency...")
+    ranked_posts = rank_posts(matching_posts)
+    
+    # Save ranked posts to database
+    print(f"Saving top {len(ranked_posts)} posts to database...")
+    save_posts_to_database(ranked_posts, query=user_query)
+    
+    print(f"\nTop {len(ranked_posts)} posts:\n")
+    
+    # Display ranked posts
+    for i, post in enumerate(ranked_posts, 1):
+        print(f"#{i} -------------------------")
+        print(format_post(post))
+        print()
+
+def main_with_query(user_query: str):
+    """Run the main function with a predefined query (non-interactive mode)."""
+    # Load keywords from keywords.txt
+    keywords = load_keywords()
+    
+    if not keywords:
+        print("No keywords available. Please run export_keywords.py first.")
+        return
+    
+    print(f"Loaded {len(keywords)} keywords from keywords.txt.")
+    
+    # Load user profile
+    user_profile = load_user_profile()
+    if user_profile:
+        print("User profile loaded successfully.")
+    else:
+        print("No user profile found. Proceeding without user profile.")
+    
+    print(f"Using query: {user_query}")
+    
+    # Call keyword_finder_llm to find relevant keywords
+    print("Calling keyword_finder_llm to find relevant keywords...")
+    relevant_keywords = keyword_finder_llm(user_query, keywords, user_profile)
     
     # Ensure we have between 2 and 5 keywords
     relevant_keywords = ensure_keyword_count(relevant_keywords, keywords)
@@ -508,4 +598,25 @@ def main():
         print()
 
 if __name__ == "__main__":
-    main()
+    import argparse
+    
+    parser = argparse.ArgumentParser(description="Find and select posts based on user query.")
+    parser.add_argument("--dynamic", action="store_true", help="Force regeneration of dynamic profile before searching")
+    parser.add_argument("--query", help="Query for content discovery (non-interactive mode)")
+    
+    args = parser.parse_args()
+    
+    # Generate dynamic profile if requested
+    if args.dynamic and os.path.exists("dynamic_user_profile.py"):
+        print("Forcing dynamic profile regeneration...")
+        try:
+            import dynamic_user_profile
+            dynamic_user_profile.main()
+        except Exception as e:
+            print(f"Error generating dynamic profile: {e}")
+    
+    # Run in non-interactive mode if query is provided
+    if args.query:
+        main_with_query(args.query)
+    else:
+        main()

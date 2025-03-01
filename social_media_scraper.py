@@ -3,6 +3,7 @@ import sqlite3
 import time
 import schedule
 import json
+import argparse
 from typing import List
 from pydantic import BaseModel
 from dotenv import load_dotenv
@@ -123,7 +124,7 @@ async def navigate_to_home_feed(browser: Browser):
 
 # Define a custom action to get post selectors
 @controller.action('Get Post Selectors')
-async def get_post_selectors(browser: Browser, count: int = 4):
+async def get_post_selectors(browser: Browser, count: int = 10):
     page = browser.get_current_page()
     try:
         # Wait for posts to load
@@ -346,11 +347,12 @@ sensitive_data = {"x_username": username, "x_password": password}
 # Define the Task Instruction for the Agent
 # ----------------------------------------------
 
-task_str = (
-    "First, use the 'Open Twitter' action to open the Twitter homepage. "
-    "Then, if not already logged in, use the provided sensitive credentials (x_username and x_password) to log in to Twitter. "
-    "After ensuring you're logged in, use the 'Navigate to Home Feed' action to go to the home feed. "
-    "Once on the home feed, use the 'Get Post Selectors' action to get selectors for the top 4 posts. "
+def create_task_str(post_count: int):
+    return (
+        "First, use the 'Open Twitter' action to open the Twitter homepage. "
+        "Then, if not already logged in, use the provided sensitive credentials (x_username and x_password) to log in to Twitter. "
+        "After ensuring you're logged in, use the 'Navigate to Home Feed' action to go to the home feed. "
+        f"Once on the home feed, use the 'Get Post Selectors' action to get selectors for the top {post_count} posts. "
     "Then, for each post selector returned, use the 'Extract Post Metrics' action with that selector to extract all the required information. "
     "For each post, extract the following information: "
     "1. The full post text content - Look for elements with data-testid='tweetText' "
@@ -394,13 +396,14 @@ llm = ChatOpenAI(model="gpt-4o", temperature=0.0)
 # Global variable to store the agent instance
 agent_instance = None
 
-async def main_job():
+async def main_job(post_count: int = 10):
     global agent_instance
     
     # Create an agent if it doesn't exist, or reuse the existing one
     if agent_instance is None:
         print(f"{time.strftime('%Y-%m-%d %H:%M:%S')}: Creating new agent instance...")
-        agent_instance = Agent(task=task_str, llm=llm, sensitive_data=sensitive_data, controller=controller)
+        task = create_task_str(post_count)
+        agent_instance = Agent(task=task, llm=llm, sensitive_data=sensitive_data, controller=controller)
     else:
         print(f"{time.strftime('%Y-%m-%d %H:%M:%S')}: Reusing existing agent instance...")
     
@@ -513,15 +516,22 @@ async def main_job():
 # Synchronous Job Wrapper
 # ----------------------
 
-def job():
-    asyncio.run(main_job())
+def job(post_count: int = 10):
+    asyncio.run(main_job(post_count))
 
 # ----------------------
 # Main: Run Once
 # ----------------------
 
 if __name__ == "__main__":
-    print("Starting Twitter post scraper...")
+    # Parse command-line arguments
+    parser = argparse.ArgumentParser(description="Scrape posts from Twitter/X.com")
+    parser.add_argument("--count", type=int, default=10, help="Number of posts to scrape (default: 10)")
+    args = parser.parse_args()
+    
+    post_count = args.count
+    
+    print(f"Starting Twitter post scraper (scraping {post_count} posts)...")
     # Run the job once and exit
-    job()
-    print("Scraping completed. Data saved to x_com_posts.db")
+    job(post_count)
+    print(f"Scraping completed. {post_count} posts saved to x_com_posts.db")

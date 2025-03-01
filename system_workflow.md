@@ -105,6 +105,50 @@ This document provides a comprehensive overview of the social media content cura
 - Supports filtering by validation status (like, pass, or unvalidated)
 - Provides a comprehensive view of the content curation results
 
+### 8. User Feedback Collection: `user_feedback_sample.py`
+
+**Purpose**: Simulates user feedback on selected posts to improve personalization.
+
+**Process**:
+- Creates a `user_feedback.db` database to store user feedback
+- Connects to the `posts_selected.db` database to get selected posts
+- Generates sample feedback (like, dislike, or text comments) for posts
+- Stores feedback with timestamps for later analysis
+- Provides a view function to display all feedback entries
+
+### 9. Dynamic User Profiling: `dynamic_user_profile.py`
+
+**Purpose**: Creates and maintains a dynamic user profile that evolves based on user feedback.
+
+**Process**:
+- Loads the base user profile from `user_profile.txt`
+- Retrieves user feedback from `user_feedback.db`
+- Joins feedback with post data from `posts_selected.db`
+- Formats the feedback data for LLM analysis
+- Calls an LLM to generate an updated user profile that:
+  - Strengthens interests confirmed by positive feedback
+  - Weakens interests that receive negative feedback
+  - Adds new interests based on positive feedback
+  - Updates likes and dislikes based on feedback patterns
+- Saves the dynamic profile to `dynamic_user_profile.md`
+- Can be regenerated on demand with the `--force` flag
+
+## Enhanced System Components
+
+The following components have been enhanced to use the dynamic user profile:
+
+### Ranking System: `ranking_llm.py`
+
+- Now prioritizes the dynamic user profile if available
+- Falls back to the base profile if no dynamic profile exists
+- Includes a `--dynamic` flag to force regeneration of the dynamic profile before ranking
+
+### Content Discovery: `user_posts_output.py`
+
+- Uses the dynamic user profile to improve keyword selection
+- Considers user preferences when matching queries to keywords
+- Includes a `--dynamic` flag to force regeneration of the dynamic profile before searching
+
 ## Data Flow Summary
 
 1. **Raw Data Collection**: Social media content is scraped and stored in `x_com_posts.db`
@@ -114,5 +158,8 @@ This document provides a comprehensive overview of the social media content cura
 5. **Content Selection**: Matching posts are ranked and the best ones saved to `posts_selected.db`
 6. **Validation Simulation**: An LLM simulates user validation of the selected posts
 7. **Results Presentation**: Selected posts are displayed with their validation status
+8. **Feedback Collection**: User feedback on posts is collected and stored
+9. **Profile Adaptation**: The user profile evolves based on feedback, creating a dynamic profile
+10. **Personalization Loop**: The dynamic profile feeds back into the ranking and discovery process
 
-This system creates a sophisticated content curation pipeline that leverages LLMs at multiple stages to personalize content discovery and selection based on user preferences.
+This system creates a sophisticated content curation pipeline that leverages LLMs at multiple stages to personalize content discovery and selection based on user preferences. The addition of the feedback loop and dynamic user profiling creates a self-improving system that continuously adapts to the user's evolving interests and preferences.

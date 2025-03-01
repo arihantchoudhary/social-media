@@ -21,12 +21,24 @@ OPENROUTER_API_URL = "https://openrouter.ai/api/v1/chat/completions"
 MODEL = "openai/o3-mini"
 
 def load_user_profile():
-    """Load the user profile from the text file."""
+    """Load the user profile, preferring dynamic profile if available."""
+    # Try to load dynamic profile first
     try:
+        if os.path.exists("dynamic_user_profile.md"):
+            print("Using dynamic user profile...")
+            with open("dynamic_user_profile.md", "r") as file:
+                return file.read()
+    except Exception as e:
+        print(f"Error loading dynamic user profile: {e}")
+        # Fall back to base profile
+    
+    # Load base profile if dynamic profile not available or failed to load
+    try:
+        print("Using base user profile...")
         with open("user_profile.txt", "r") as file:
             return file.read()
     except Exception as e:
-        print(f"Error loading user profile: {e}")
+        print(f"Error loading base user profile: {e}")
         return None
 
 def setup_database():
@@ -174,8 +186,17 @@ def update_post_ranking(post_id: int, ranking: int):
     conn.commit()
     conn.close()
 
-def process_posts(limit: Optional[int] = None, batch_size: int = 5):
+def process_posts(limit: Optional[int] = None, batch_size: int = 5, force_dynamic: bool = False):
     """Process posts to generate and save rankings."""
+    # Generate dynamic profile if requested
+    if force_dynamic and os.path.exists("dynamic_user_profile.py"):
+        print("Forcing dynamic profile regeneration...")
+        try:
+            import dynamic_user_profile
+            dynamic_user_profile.main()
+        except Exception as e:
+            print(f"Error generating dynamic profile: {e}")
+    
     # Load user profile
     user_profile = load_user_profile()
     if not user_profile:
@@ -265,11 +286,12 @@ if __name__ == "__main__":
     parser.add_argument("--limit", type=int, help="Limit the number of posts to process")
     parser.add_argument("--batch-size", type=int, default=5, help="Number of posts to process before sleeping")
     parser.add_argument("--stats", action="store_true", help="View ranking statistics")
+    parser.add_argument("--dynamic", action="store_true", help="Force regeneration of dynamic profile before ranking")
     
     args = parser.parse_args()
     
     if args.stats:
         view_ranking_stats()
     else:
-        process_posts(limit=args.limit, batch_size=args.batch_size)
+        process_posts(limit=args.limit, batch_size=args.batch_size, force_dynamic=args.dynamic)
         view_ranking_stats()
