@@ -22,7 +22,8 @@ const feedState = {
         gpuUtilization: 0,
         inferenceProgress: 0,
         inferenceActive: false,
-        activeTask: null
+        activeTask: null,
+        totalInferenceProgress: 0
     }
 };
 
@@ -51,7 +52,86 @@ document.addEventListener('DOMContentLoaded', () => {
     
     // Initialize progress widget
     initProgressWidget();
+    
+    // Initialize dark mode
+    initDarkMode();
+    
+    // Check if we're coming from the profile page
+    if (document.referrer.includes('index.html') || !localStorage.getItem('llmAnalysisShown')) {
+        // Generate LLM analysis of recent posts
+        generateLlmAnalysis();
+        // Mark that we've shown the analysis
+        localStorage.setItem('llmAnalysisShown', new Date().toISOString());
+    } else {
+        // Hide the analysis if not coming from profile page
+        document.getElementById('llm-analysis').style.display = 'none';
+    }
 });
+
+// Generate LLM analysis of recent posts
+async function generateLlmAnalysis() {
+    const analysisContainer = document.getElementById('llm-analysis-content');
+    
+    try {
+        // Simulate an API call to an LLM service
+        // In a real implementation, this would be a call to a backend service
+        // that would process the posts and generate insights
+        await simulateLlmAnalysis(analysisContainer);
+    } catch (error) {
+        console.error('Error generating LLM analysis:', error);
+        analysisContainer.innerHTML = '<p>Unable to generate insights at this time. Please try again later.</p>';
+    }
+}
+
+// Simulate an LLM analysis with a delay to mimic API call
+async function simulateLlmAnalysis(container) {
+    // Show loading state
+    container.innerHTML = '<p>Analyzing your latest posts...</p>';
+    
+    // Simulate API delay
+    await new Promise(resolve => setTimeout(resolve, 2000));
+    
+    // Sample analysis content - in a real implementation, this would come from the LLM
+    const analysisContent = `
+        <p>Based on your recent posts, there's been <strong>significant discussion around AI technology</strong> in your network. Several posts highlight breakthroughs in generative models.</p>
+        
+        <p>A trending topic in your feed is <strong>climate change policy</strong>, with multiple high-engagement posts discussing recent legislative developments.</p>
+        
+        <p>There's also notable excitement about <strong>SpaceX's latest rocket launch</strong>, which appears to be generating substantial positive sentiment across platforms.</p>
+        
+        <p>Your personal posts about <strong>photography techniques</strong> are receiving higher-than-average engagement compared to your other content.</p>
+    `;
+    
+    // Update the container with the analysis
+    container.innerHTML = analysisContent;
+}
+
+// Initialize dark mode
+function initDarkMode() {
+    const darkModeToggle = document.getElementById('dark-mode-toggle');
+    const isDarkMode = localStorage.getItem('darkMode') === 'true';
+    
+    // Apply dark mode if it was previously enabled
+    if (isDarkMode) {
+        document.body.classList.add('dark-mode');
+        darkModeToggle.innerHTML = '<i class="fas fa-sun"></i>';
+    }
+    
+    // Add event listener to toggle button
+    darkModeToggle.addEventListener('click', () => {
+        // Toggle dark mode class on body
+        document.body.classList.toggle('dark-mode');
+        
+        // Update icon based on current state
+        const isDarkModeNow = document.body.classList.contains('dark-mode');
+        darkModeToggle.innerHTML = isDarkModeNow ? 
+            '<i class="fas fa-sun"></i>' : 
+            '<i class="fas fa-moon"></i>';
+        
+        // Save preference to localStorage
+        localStorage.setItem('darkMode', isDarkModeNow);
+    });
+}
 
 // Initialize the progress widget
 function initProgressWidget() {
@@ -68,13 +148,13 @@ function updatePostsAnalyzed() {
     
     // Increment the posts analyzed count every few seconds
     setInterval(() => {
-        // Increment by a random amount between 1 and 5
-        const increment = Math.floor(Math.random() * 5) + 1;
+        // Increment by a smaller amount (1 or 2) for slower increase
+        const increment = Math.floor(Math.random() * 2) + 1;
         feedState.progressState.postsAnalyzed += increment;
         
         // Update the UI
         postsAnalyzedElement.textContent = formatNumber(feedState.progressState.postsAnalyzed);
-    }, 3000); // Update every 3 seconds
+    }, 5000); // Update every 5 seconds (slower)
     
     // Set an initial value
     feedState.progressState.postsAnalyzed = 1250;
@@ -89,11 +169,11 @@ function updateGpuUtilization() {
     // Update the GPU utilization every second
     setInterval(() => {
         // Calculate a new GPU utilization value that's somewhat close to the previous value
-        // but can vary up and down to simulate real GPU usage
+        // but with less variation to simulate more stable GPU usage
         let newValue = feedState.progressState.gpuUtilization;
         
-        // 70% chance to move in the same direction, 30% chance to change direction
-        const changeDirection = Math.random() > 0.7;
+        // 85% chance to move in the same direction, 15% chance to change direction (more stable)
+        const changeDirection = Math.random() > 0.85;
         
         // Current direction (1 for up, -1 for down)
         let direction = feedState.progressState.gpuDirection || 1;
@@ -105,8 +185,8 @@ function updateGpuUtilization() {
         // Store the direction for next time
         feedState.progressState.gpuDirection = direction;
         
-        // Change by a random amount between 1% and 10%
-        const change = Math.floor(Math.random() * 10) + 1;
+        // Change by a smaller random amount between 1% and 5% (less variation)
+        const change = Math.floor(Math.random() * 5) + 1;
         newValue += direction * change;
         
         // Keep within bounds (0-100%)
@@ -127,7 +207,7 @@ function updateGpuUtilization() {
         } else {
             gpuBarElement.style.background = 'linear-gradient(90deg, #FF5722, #F44336)';
         }
-    }, 1000); // Update every second
+    }, 2000); // Update every 2 seconds (slower for more stability)
     
     // Set an initial value
     feedState.progressState.gpuUtilization = 35;
@@ -150,31 +230,45 @@ function startInference(taskType) {
     inferenceStatusElement.textContent = 'Running';
     inferenceStatusElement.classList.add('active');
     
-    // Reset progress
-    feedState.progressState.inferenceProgress = 0;
-    inferenceProgressElement.style.width = '0%';
-    
-    // Activate the appropriate task dot
+    // Set starting progress based on task type
     if (taskType === 'post-classification') {
+        // Reset total progress for a new search
+        feedState.progressState.totalInferenceProgress = 0;
+        // Post classification is the first half (0-50%)
+        feedState.progressState.inferenceProgress = 0;
+        
+        // Activate post classification dot
         postClassificationDot.classList.add('active');
         sentimentAnalysisDot.classList.remove('active');
     } else if (taskType === 'sentiment-analysis') {
+        // Sentiment analysis is the second half (50-100%)
+        feedState.progressState.inferenceProgress = 50;
+        
+        // Activate sentiment analysis dot
         sentimentAnalysisDot.classList.add('active');
-        postClassificationDot.classList.remove('active');
+        postClassificationDot.classList.add('active'); // Keep both active
     }
+    
+    // Update UI with current progress
+    inferenceProgressElement.style.width = `${feedState.progressState.inferenceProgress}%`;
     
     // Start progress animation
     const progressInterval = setInterval(() => {
         // Increment progress
-        feedState.progressState.inferenceProgress += 2;
+        feedState.progressState.inferenceProgress += 1;
         
         // Update UI
         inferenceProgressElement.style.width = `${feedState.progressState.inferenceProgress}%`;
         
-        // Check if complete
-        if (feedState.progressState.inferenceProgress >= 100) {
+        // Check if complete for this task
+        if ((taskType === 'post-classification' && feedState.progressState.inferenceProgress >= 50) ||
+            (taskType === 'sentiment-analysis' && feedState.progressState.inferenceProgress >= 100)) {
             clearInterval(progressInterval);
-            stopInference();
+            
+            // Only stop inference if we've completed sentiment analysis (the final task)
+            if (taskType === 'sentiment-analysis') {
+                stopInference();
+            }
         }
     }, 50); // Update every 50ms for smooth animation
     
@@ -389,9 +483,6 @@ async function applyFilter(filterValue) {
         // Use the user_posts_output.py script to find relevant posts
         const result = await BackendConnector.searchPosts(filterValue);
         
-        // Stop post classification inference animation
-        stopInference();
-        
         if (result && result.success && result.posts && result.posts.length > 0) {
             // Update the feed state with the search results
             feedState.filteredPosts = result.posts;
@@ -410,9 +501,6 @@ async function applyFilter(filterValue) {
             } else {
                 feedState.currentSentimentAnalysis = null;
             }
-            
-            // Stop sentiment analysis inference animation
-            stopInference();
             
             // Add to recent searches
             if (filterValue.length > 0) {
@@ -441,6 +529,9 @@ async function applyFilter(filterValue) {
             
             // Render posts
             renderPosts();
+            
+            // Stop inference animation
+            stopInference();
         }
     } catch (error) {
         console.error('Error searching posts:', error);
@@ -975,13 +1066,8 @@ function getPlatformIconClass(platform) {
 function formatNumber(num) {
     if (num === null || num === undefined) return '-';
     
-    if (num >= 1000000) {
-        return (num / 1000000).toFixed(1) + 'M';
-    } else if (num >= 1000) {
-        return (num / 1000).toFixed(1) + 'K';
-    } else {
-        return num.toString();
-    }
+    // Always return the full number as a string
+    return num.toString();
 }
 
 // Helper function to format dates

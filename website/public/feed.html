@@ -11,6 +11,11 @@
     <script async src="https://platform.twitter.com/widgets.js" charset="utf-8"></script>
 </head>
 <body>
+    <!-- Dark Mode Toggle -->
+    <button class="dark-mode-toggle" id="dark-mode-toggle" title="Toggle Dark Mode">
+        <i class="fas fa-moon"></i>
+    </button>
+    
     <div class="container">
         <header>
             <div class="header-top">
@@ -21,38 +26,31 @@
                     </button>
                 </div>
             </div>
-            <div class="search-container">
-                <div class="search-bar">
-                    <input type="text" id="filter-input" placeholder="Filter by keywords...">
-                    <button id="filter-button"><i class="fas fa-search"></i></button>
-                </div>
-                <div id="search-suggestions" class="search-suggestions"></div>
+            
+            <div class="top-controls">
+                <!-- Search Container -->
+                <div class="search-container">
+                    <div class="search-bar">
+                        <input type="text" id="filter-input" placeholder="Filter by keywords...">
+                        <button id="filter-button"><i class="fas fa-search"></i></button>
+                    </div>
+                    <div id="search-suggestions" class="search-suggestions"></div>
                 <div class="filter-instructions">Try searching by keywords from your posts</div>
-            </div>
-            <div class="view-options">
-                <div class="view-toggle-container">
-                    <span>Sort by:</span>
-                    <select id="sort-select">
-                        <option value="rank">Relevance</option>
-                        <option value="date">Date (Newest)</option>
-                        <option value="likes">Most Liked</option>
-                        <option value="comments">Most Comments</option>
-                    </select>
+                
+                <!-- LLM Analysis Container -->
+                <div class="llm-analysis-container" id="llm-analysis">
+                    <div class="llm-analysis-header">
+                        <h3>Feed Insights</h3>
+                        <span class="ai-badge">AI Analysis</span>
+                    </div>
+                    <div class="llm-analysis-content" id="llm-analysis-content">
+                        <p>Loading analysis of your latest posts...</p>
+                    </div>
                 </div>
-                <div class="view-toggle-container">
-                    <span>Platform:</span>
-                    <select id="platform-select">
-                        <option value="all">All Platforms</option>
-                        <option value="twitter">Twitter</option>
-                        <option value="instagram">Instagram</option>
-                        <option value="facebook">Facebook</option>
-                    </select>
                 </div>
-            </div>
-        </header>
-        
-        <!-- Progress Widget -->
-        <div class="progress-widget">
+                
+                <!-- Progress Widget -->
+                <div class="progress-widget">
             <h2>System Status</h2>
             <div class="progress-stats">
                 <div class="stat-item">
@@ -87,7 +85,30 @@
                     </div>
                 </div>
             </div>
-        </div>
+                </div>
+            </div>
+            
+            <div class="view-options">
+                <div class="view-toggle-container">
+                    <span>Sort by:</span>
+                    <select id="sort-select">
+                        <option value="rank">Relevance</option>
+                        <option value="date">Date (Newest)</option>
+                        <option value="likes">Most Liked</option>
+                        <option value="comments">Most Comments</option>
+                    </select>
+                </div>
+                <div class="view-toggle-container">
+                    <span>Platform:</span>
+                    <select id="platform-select">
+                        <option value="all">All Platforms</option>
+                        <option value="twitter">Twitter</option>
+                        <option value="instagram">Instagram</option>
+                        <option value="facebook">Facebook</option>
+                    </select>
+                </div>
+            </div>
+        </header>
         
         <main>
             <div class="feed" id="feed-container">
