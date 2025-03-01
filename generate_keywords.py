@@ -69,6 +69,14 @@ def call_openrouter(post_text: str) -> List[str]:
     if not post_text:
         print("Warning: Empty or None post_text provided")
         return []
+    
+    # Handle very short posts (less than 5 characters)
+    if len(post_text.strip()) < 5:
+        print(f"Post text too short: '{post_text}'. Extracting basic keywords.")
+        words = [word.strip() for word in post_text.split() if len(word.strip()) > 2]
+        if words:
+            return words
+        return ["short post"]
         
     headers = {
         "Authorization": f"Bearer {OPENROUTER_API_KEY}",
@@ -80,7 +88,7 @@ def call_openrouter(post_text: str) -> List[str]:
         "messages": [
             {
                 "role": "system",
-                "content": "You are a keyword extraction assistant. Extract 3-5 relevant keywords from the given text. Return only the keywords as a JSON array of strings, with no additional text or explanation. For very short texts, focus on the main topics or entities mentioned."
+                "content": "You are a keyword extraction assistant. Extract 3-5 relevant keywords from the given text. Return only the keywords as a JSON array of strings, with no additional text or explanation. For very short texts, extract any meaningful nouns, names, or topics. Even for single sentences or fragments, identify the main subjects, actions, or themes. Always return at least 1-2 keywords for any non-empty input."
             },
             {
                 "role": "user",
@@ -114,6 +122,10 @@ def call_openrouter(post_text: str) -> List[str]:
 
 def extract_keywords_from_text(text: str) -> List[str]:
     """Extract keywords from text if the API doesn't return a proper JSON array."""
+    # Handle empty text
+    if not text or not text.strip():
+        return ["unknown"]
+        
     # Remove common formatting
     text = text.replace("Keywords:", "").replace("keywords:", "")
     text = text.replace("[", "").replace("]", "")
@@ -123,10 +135,22 @@ def extract_keywords_from_text(text: str) -> List[str]:
     # Split by common separators
     for sep in [",", ";", "\n"]:
         if sep in text:
-            return [keyword.strip() for keyword in text.split(sep) if keyword.strip()]
+            keywords = [keyword.strip() for keyword in text.split(sep) if keyword.strip()]
+            if keywords:
+                return keywords
     
-    # If no separators found, just return the whole text as one keyword
-    return [text.strip()] if text.strip() else []
+    # If no separators found, try to split by spaces for very short texts
+    if len(text.strip()) < 30:
+        words = [word.strip() for word in text.split() if len(word.strip()) > 2]
+        if words:
+            return words[:5]  # Limit to 5 keywords
+    
+    # If all else fails, just return the whole text as one keyword (up to 50 chars)
+    if text.strip():
+        return [text.strip()[:50]]
+    
+    # Absolute fallback
+    return ["content"]
 
 def update_post_keywords(post_id: int, keywords: List[str]):
     """Update a post with the generated keywords."""
@@ -250,6 +274,83 @@ def view_keywords_stats():
     
     conn.close()
 
+def fix_missing_keywords():
+    """Fix posts that don't have keywords by processing them specifically."""
+    # Get posts without keywords
+    posts = get_posts_without_keywords()
+    
+    if not posts:
+        print("No posts found without keywords.")
+        return
+    
+    print(f"Found {len(posts)} posts without keywords. Processing them...")
+    
+    # Process each post
+    for i, post in enumerate(posts):
+        print(f"Processing post {i+1}/{len(posts)} (ID: {post['id']})...")
+        
+        # For very short posts, use a simpler approach
+        if not post["post_text"] or len(post["post_text"].strip()) < 10:
+            print(f"Short post detected: '{post['post_text']}'")
+            
+            # Extract simple keywords
+            if post["post_text"]:
+                words = [word.strip() for word in post["post_text"].split() if len(word.strip()) > 2]
+                if words:
+                    keywords = words[:5]  # Limit to 5 keywords
+                else:
+                    keywords = ["short post"]
+            else:
+                keywords = ["empty post"]
+                
+            print(f"Generated simple keywords: {', '.join(keywords)}")
+            
+            # Update the post with keywords
+            update_post_keywords(post["id"], keywords)
+            
+            # Update the keywords table
+            update_keywords_table(keywords)
+            continue
+        
+        # For normal posts, use the API
+        keywords = call_openrouter(post["post_text"])
+        
+        if keywords:
+            print(f"Generated keywords: {', '.join(keywords)}")
+            
+            # Update the post with keywords
+            update_post_keywords(post["id"], keywords)
+            
+            # Update the keywords table
+            update_keywords_table(keywords)
+        else:
+            # Fallback for API failures
+            print("API failed to generate keywords. Using fallback method.")
+            
+            # Extract simple keywords from the text
+            words = post["post_text"].split()
+            # Get the 3-5 longest words as keywords
+            words.sort(key=len, reverse=True)
+            keywords = [word.strip() for word in words[:5] if len(word.strip()) > 3]
+            
+            if not keywords:
+                keywords = ["content"]
+                
+            print(f"Generated fallback keywords: {', '.join(keywords)}")
+            
+            # Update the post with keywords
+            update_post_keywords(post["id"], keywords)
+            
+            # Update the keywords table
+            update_keywords_table(keywords)
+        
+        # Sleep between API requests to avoid rate limits
+        if (i + 1) % 5 == 0 and i + 1 < len(posts):
+            print(f"Processed {i+1} posts. Sleeping for 3 seconds to avoid rate limits...")
+            time.sleep(3)
+    
+    print(f"Finished processing {len(posts)} posts.")
+
 if __name__ == "__main__":
     import argparse
     
@@ -258,10 +359,14 @@ if __name__ == "__main__":
     parser.add_argument("--batch-size", type=int, default=10, help="Number of posts to process before sleeping")
     parser.add_argument("--stats", action="store_true", help="View keyword statistics")
     parser.add_argument("--force", action="store_true", help="Force update keywords for all posts, even those that already have keywords")
+    parser.add_argument("--fix-missing", action="store_true", help="Fix posts that don't have keywords yet")
     
     args = parser.parse_args()
     
     if args.stats:
+        view_keywords_stats()
+    elif args.fix_missing:
+        fix_missing_keywords()
         view_keywords_stats()
     else:
         process_posts(limit=args.limit, batch_size=args.batch_size, force_update=args.force)

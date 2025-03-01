@@ -352,7 +352,22 @@ app.post('/api/submit-feedback', (req, res) => {
                 }
                 
                 feedbackDb.close();
-                res.json({ success: true, message: 'Feedback submitted and saved to database' });
+                
+                // After saving feedback, update the dynamic user profile
+                console.log('Updating dynamic user profile based on new feedback...');
+                const dynamicProfileCommand = `python ${path.join(__dirname, '..', 'dynamic_user_profile.py')} --force`;
+                
+                exec(dynamicProfileCommand, (error, stdout, stderr) => {
+                    if (error) {
+                        console.error(`Error updating dynamic user profile: ${error.message}`);
+                        // Still return success for the feedback submission
+                    } else {
+                        console.log(`Dynamic user profile updated: ${stdout}`);
+                    }
+                    
+                    // Return success response for the feedback submission
+                    res.json({ success: true, message: 'Feedback submitted and saved to database' });
+                });
             }
         );
     } catch (error) {
