@@ -3,35 +3,238 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Social Media Feed - Login</title>
-    <link rel="stylesheet" href="css/styles.css">
-    <link rel="stylesheet" href="css/login.css">
+    <title>Social Media Curation System</title>
+    <link rel="stylesheet" href="styles.css">
+    <link rel="stylesheet" href="profile-editor.css">
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/5.15.4/css/all.min.css">
-    
-    <!-- Firebase SDK (compat version) -->
-    <script src="https://www.gstatic.com/firebasejs/9.20.0/firebase-app-compat.js"></script>
-    <script src="https://www.gstatic.com/firebasejs/9.20.0/firebase-auth-compat.js"></script>
-    <script src="https://www.gstatic.com/firebasejs/9.20.0/firebase-firestore-compat.js"></script>
 </head>
 <body>
-    <div class="login-container">
-        <div class="login-card">
-            <h1>Social Media Feed</h1>
-            <p class="login-subtitle">Sign in to access your personalized feed</p>
-            
-            <div class="auth-buttons">
-                <button id="google-signin" class="google-button">
-                    <img src="https://upload.wikimedia.org/wikipedia/commons/5/53/Google_%22G%22_Logo.svg" alt="Google logo">
-                    Sign in with Google
-                </button>
+    <div class="container">
+        <header class="landing-header">
+            <h1>Social Media Curation System</h1>
+            <p class="subtitle">Personalize your feed with your preferences and interests</p>
+        </header>
+
+        <main class="landing-main">
+            <div class="setup-container">
+                <div class="progress-bar">
+                    <div class="progress-step active" data-step="1">
+                        <div class="step-number">1</div>
+                        <div class="step-label">Profile</div>
+                    </div>
+                    <div class="progress-line"></div>
+                    <div class="progress-step" data-step="2">
+                        <div class="step-number">2</div>
+                        <div class="step-label">Accounts</div>
+                    </div>
+                    <div class="progress-line"></div>
+                    <div class="progress-step" data-step="3">
+                        <div class="step-number">3</div>
+                        <div class="step-label">Review</div>
+                    </div>
+                </div>
+
+                <!-- Step 1: User Profile -->
+                <div class="setup-step active" id="step-1">
+                    <h2>Your Profile</h2>
+                    <p class="step-description">Tell us about yourself so we can curate content that matches your interests.</p>
+                    
+                    <div class="profile-editor">
+                        <div class="profile-section">
+                            <h3>Personal Information</h3>
+                            <div class="form-group">
+                                <label for="profile-name">Name</label>
+                                <input type="text" id="profile-name" placeholder="Your name">
+                            </div>
+                            <div class="form-group">
+                                <label for="profile-age">Age</label>
+                                <input type="number" id="profile-age" placeholder="Your age">
+                            </div>
+                            <div class="form-group">
+                                <label for="profile-location">Location</label>
+                                <input type="text" id="profile-location" placeholder="City, Country">
+                            </div>
+                            <div class="form-group">
+                                <label for="profile-occupation">Occupation</label>
+                                <input type="text" id="profile-occupation" placeholder="Your job or role">
+                            </div>
+                        </div>
+
+                        <div class="profile-section">
+                            <h3>Interests</h3>
+                            <div class="form-group">
+                                <label for="profile-interests">Your Interests</label>
+                                <textarea id="profile-interests" placeholder="Enter your interests, separated by commas (e.g., technology, travel, cooking)"></textarea>
+                            </div>
+                        </div>
+
+                        <div class="profile-section">
+                            <h3>Content Preferences</h3>
+                            <div class="form-group">
+                                <label for="profile-likes">Content You Like</label>
+                                <textarea id="profile-likes" placeholder="Describe content types you enjoy"></textarea>
+                            </div>
+                            <div class="form-group">
+                                <label for="profile-dislikes">Content You Dislike</label>
+                                <textarea id="profile-dislikes" placeholder="Describe content types you want to avoid"></textarea>
+                            </div>
+                        </div>
+
+                        <div class="profile-section">
+                            <h3>Advanced Profile</h3>
+                            <div class="form-group">
+                                <label for="profile-full">Full Profile (Markdown)</label>
+                                <textarea id="profile-full" class="full-profile-editor" placeholder="# User Profile&#10;&#10;## Personal Information&#10;- Name: &#10;- Age: &#10;- Location: &#10;&#10;## Content Preferences&#10;..."></textarea>
+                            </div>
+                            <div class="form-group">
+                                <button id="load-sample-profile" class="secondary-button">
+                                    <i class="fas fa-file-import"></i> Load Sample Profile
+                                </button>
+                            </div>
+                        </div>
+                    </div>
+
+                    <div class="step-actions">
+                        <button class="next-button" data-next="2">
+                            Continue <i class="fas fa-arrow-right"></i>
+                        </button>
+                    </div>
+                </div>
+
+                <!-- Step 2: Social Media Accounts -->
+                <div class="setup-step" id="step-2">
+                    <h2>Social Media Accounts</h2>
+                    <p class="step-description">Add your social media credentials to scrape content from your feeds.</p>
+                    
+                    <div class="accounts-container">
+                        <div class="account-card" data-platform="twitter">
+                            <div class="account-header">
+                                <i class="fab fa-twitter twitter"></i>
+                                <h3>Twitter / X</h3>
+                            </div>
+                            <div class="account-form">
+                                <div class="form-group">
+                                    <label for="twitter-username">Username</label>
+                                    <input type="text" id="twitter-username" placeholder="@username">
+                                </div>
+                                <div class="form-group">
+                                    <label for="twitter-password">Password</label>
+                                    <input type="password" id="twitter-password" placeholder="Your password">
+                                </div>
+                            </div>
+                        </div>
+
+                        <div class="account-card" data-platform="instagram">
+                            <div class="account-header">
+                                <i class="fab fa-instagram instagram"></i>
+                                <h3>Instagram</h3>
+                            </div>
+                            <div class="account-form">
+                                <div class="form-group">
+                                    <label for="instagram-username">Username</label>
+                                    <input type="text" id="instagram-username" placeholder="username">
+                                </div>
+                                <div class="form-group">
+                                    <label for="instagram-password">Password</label>
+                                    <input type="password" id="instagram-password" placeholder="Your password">
+                                </div>
+                            </div>
+                        </div>
+
+                        <div class="account-card" data-platform="facebook">
+                            <div class="account-header">
+                                <i class="fab fa-facebook facebook"></i>
+                                <h3>Facebook</h3>
+                            </div>
+                            <div class="account-form">
+                                <div class="form-group">
+                                    <label for="facebook-username">Email/Phone</label>
+                                    <input type="text" id="facebook-username" placeholder="Email or phone">
+                                </div>
+                                <div class="form-group">
+                                    <label for="facebook-password">Password</label>
+                                    <input type="password" id="facebook-password" placeholder="Your password">
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+
+                    <div class="step-actions">
+                        <button class="back-button" data-prev="1">
+                            <i class="fas fa-arrow-left"></i> Back
+                        </button>
+                        <button class="next-button" data-next="3">
+                            Continue <i class="fas fa-arrow-right"></i>
+                        </button>
+                    </div>
+                </div>
+
+                <!-- Step 3: Review and Start -->
+                <div class="setup-step" id="step-3">
+                    <h2>Review and Start</h2>
+                    <p class="step-description">Review your settings and start the content curation process.</p>
+                    
+                    <div class="review-container">
+                        <div class="review-section">
+                            <h3>Profile Summary</h3>
+                            <div class="review-content" id="profile-summary">
+                                <!-- Will be populated by JavaScript -->
+                            </div>
+                        </div>
+
+                        <div class="review-section">
+                            <h3>Connected Accounts</h3>
+                            <div class="review-content" id="accounts-summary">
+                                <!-- Will be populated by JavaScript -->
+                            </div>
+                        </div>
+
+                        <div class="review-section">
+                            <h3>Curation Settings</h3>
+                            <div class="form-group">
+                                <label for="post-count">Number of posts to scrape</label>
+                                <input type="number" id="post-count" value="10" min="5" max="50">
+                            </div>
+                            <div class="form-group checkbox-group">
+                                <input type="checkbox" id="auto-keywords" checked>
+                                <label for="auto-keywords">Generate keywords automatically</label>
+                            </div>
+                            <div class="form-group checkbox-group">
+                                <input type="checkbox" id="auto-ranking" checked>
+                                <label for="auto-ranking">Rank posts based on profile</label>
+                            </div>
+                        </div>
+                    </div>
+
+                    <div class="step-actions">
+                        <button class="back-button" data-prev="2">
+                            <i class="fas fa-arrow-left"></i> Back
+                        </button>
+                        <button id="start-curation" class="primary-button">
+                            <i class="fas fa-rocket"></i> Start Curation
+                        </button>
+                    </div>
+                </div>
             </div>
-            
-            <div id="auth-error" class="auth-error"></div>
+        </main>
+
+        <!-- Loading Overlay -->
+        <div id="loading-overlay" class="loading-overlay">
+            <div class="loading-content">
+                <div class="loading-spinner"></div>
+                <h2>Processing Your Content</h2>
+                <div id="loading-status">Initializing...</div>
+                <div id="loading-progress">
+                    <div class="progress-bar-container">
+                        <div class="progress-bar-fill" style="width: 0%"></div>
+                    </div>
+                    <div class="progress-percentage">0%</div>
+                </div>
+            </div>
         </div>
     </div>
 
-    <!-- Config first, then auth -->
-    <script src="js/firebase-config.js"></script>
-    <script src="js/auth.js"></script>
+    <script src="profile-editor.js"></script>
+    <script src="backend-connector.js"></script>
 </body>
 </html>

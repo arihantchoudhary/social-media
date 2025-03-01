@@ -1,0 +1,142 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Social Media Feed</title>
+    <link rel="stylesheet" href="styles.css">
+    <link rel="stylesheet" href="feed.css">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/5.15.4/css/all.min.css">
+    <script src="https://hammerjs.github.io/dist/hammer.min.js"></script>
+    <script async src="https://platform.twitter.com/widgets.js" charset="utf-8"></script>
+</head>
+<body>
+    <div class="container">
+        <header>
+            <div class="header-top">
+                <h1>Your Personalized Feed</h1>
+                <div class="user-menu">
+                    <button id="back-to-profile" class="back-button">
+                        <i class="fas fa-arrow-left"></i> Back to Profile
+                    </button>
+                </div>
+            </div>
+            <div class="search-container">
+                <div class="search-bar">
+                    <input type="text" id="filter-input" placeholder="Filter by keywords...">
+                    <button id="filter-button"><i class="fas fa-search"></i></button>
+                </div>
+                <div id="search-suggestions" class="search-suggestions"></div>
+                <div class="filter-instructions">Try searching by keywords from your posts</div>
+            </div>
+            <div class="view-options">
+                <div class="view-toggle-container">
+                    <span>Sort by:</span>
+                    <select id="sort-select">
+                        <option value="rank">Relevance</option>
+                        <option value="date">Date (Newest)</option>
+                        <option value="likes">Most Liked</option>
+                        <option value="comments">Most Comments</option>
+                    </select>
+                </div>
+                <div class="view-toggle-container">
+                    <span>Platform:</span>
+                    <select id="platform-select">
+                        <option value="all">All Platforms</option>
+                        <option value="twitter">Twitter</option>
+                        <option value="instagram">Instagram</option>
+                        <option value="facebook">Facebook</option>
+                    </select>
+                </div>
+            </div>
+        </header>
+        
+        <main>
+            <div class="feed" id="feed-container">
+                <div class="loading">Loading your personalized feed...</div>
+            </div>
+        </main>
+        
+        <div class="swipe-instructions">
+            <i class="fas fa-arrow-left"></i> Swipe left to dislike | Swipe right to like <i class="fas fa-arrow-right"></i>
+        </div>
+    </div>
+
+    <!-- Post Modal -->
+    <div id="post-modal" class="modal">
+        <div class="modal-content">
+            <span class="close-modal">&times;</span>
+            <div id="post-detail-container"></div>
+        </div>
+    </div>
+
+    <!-- Feedback Modal -->
+    <div id="feedback-modal" class="modal">
+        <div class="modal-content">
+            <span class="close-modal">&times;</span>
+            <h2>Provide Feedback</h2>
+            <div class="feedback-form">
+                <div class="feedback-post-preview" id="feedback-post-preview"></div>
+                <div class="form-group">
+                    <label for="feedback-text">Why do you like/dislike this post?</label>
+                    <textarea id="feedback-text" placeholder="Your feedback helps us improve your recommendations..."></textarea>
+                </div>
+                <div class="feedback-actions">
+                    <button id="submit-feedback" class="primary-button">
+                        <i class="fas fa-paper-plane"></i> Submit Feedback
+                    </button>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Post Template (hidden, used by JavaScript) -->
+    <template id="post-template">
+        <div class="post">
+            <div class="post-header">
+                <img src="" alt="" class="profile-picture">
+                <div class="user-info">
+                    <span class="username"></span>
+                    <span class="post-date"></span>
+                </div>
+                <div class="platform-icon-container">
+                    <i class="platform-icon"></i>
+                </div>
+            </div>
+            <div class="post-body">
+                <div class="post-content"></div>
+                <div class="post-image-container">
+                    <img src="" alt="" class="post-image">
+                </div>
+                <div class="post-keywords"></div>
+            </div>
+            <div class="post-metrics">
+                <div class="metric">
+                    <i class="fas fa-eye"></i> <span class="views-count"></span>
+                </div>
+                <div class="metric">
+                    <i class="fas fa-comment"></i> <span class="comments-count"></span>
+                </div>
+                <div class="metric">
+                    <i class="fas fa-retweet"></i> <span class="retweets-count"></span>
+                </div>
+                <div class="metric">
+                    <i class="fas fa-heart"></i> <span class="likes-count"></span>
+                </div>
+            </div>
+            <div class="post-actions">
+                <button class="like-button"><i class="fas fa-heart"></i> Like</button>
+                <button class="dislike-button"><i class="fas fa-times"></i> Dislike</button>
+                <button class="feedback-button"><i class="fas fa-comment-alt"></i> Feedback</button>
+            </div>
+            <div class="swipe-feedback">
+                <div class="like-feedback">Liked! <i class="fas fa-heart"></i></div>
+                <div class="dislike-feedback">Disliked <i class="fas fa-times"></i></div>
+            </div>
+        </div>
+    </template>
+
+    <script src="backend-connector.js"></script>
+    <script src="feed.js"></script>
+</body>
+</html>

@@ -32,8 +32,14 @@ def load_keywords(keywords_file='keywords.txt'):
         return []
 
 def load_user_profile():
-    """Load the user profile, preferring dynamic profile if available."""
-    # Try to load dynamic profile first
+    """Load the user profile, preferring environment variable, then dynamic profile, then file."""
+    # First check if profile is provided in environment variable (from server.js)
+    env_profile = os.getenv("USER_PROFILE_CONTENT")
+    if env_profile:
+        print("Using user profile from environment variable...")
+        return env_profile
+    
+    # Try to load dynamic profile next
     try:
         if os.path.exists("dynamic_user_profile.md"):
             print("Using dynamic user profile...")
