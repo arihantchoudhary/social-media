@@ -1,24 +1,41 @@
-Commander-in-Chief
-Donald Trump
-Elon Musk
-JB Straubel
-Joe Rogan
-POTUS
 President
-President Trump
+Donald Trump
+Commander-in-Chief
 Sleep Elixir
-Tesla
-Trump
-UK
 US
+hospitality
 Ukraine
+Joe Rogan
+Tesla
+JB Straubel
+vehicles
+```json
 Vance
 Zelenskyy
+Trump
+```
+UK
+POTUS
+```json
+President Trump
+weapon shipments
+support
+```
+```json
+Elon Musk
+interview
+```
 electric vehicles
 future
+```json
+UK
+POTUS
+```
+President Trump
 halted weapon shipments
-hospitality
+Elon Musk
 interview
-support
-vehicles
-weapon shipments
+```json
+electric vehicles
+future
+```

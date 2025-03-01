@@ -399,6 +399,38 @@ ${profile.dislikes.map(dislike => `- ${dislike}`).join('\n')}
     },
     
     /**
+     * Search posts using the user_posts_output.py script
+     * 
+     * @param {string} query - The search query
+     * @returns {Promise} - A promise that resolves with the posts
+     */
+    searchPosts: async function(query) {
+        try {
+            console.log(`Searching posts with query: ${query}`);
+            
+            // Call the search-posts API endpoint
+            const response = await fetch('/api/search-posts', {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json'
+                },
+                body: JSON.stringify({ query })
+            });
+            
+            if (!response.ok) {
+                throw new Error('Failed to search posts');
+            }
+            
+            return await response.json();
+        } catch (error) {
+            console.error('Error searching posts:', error);
+            
+            // For local testing, return empty posts array
+            return { success: false, posts: [], error: error.message };
+        }
+    },
+    
+    /**
      * Parse posts from the output of view_posts_db.py
      * 
      * @param {string} output - The output of view_posts_db.py

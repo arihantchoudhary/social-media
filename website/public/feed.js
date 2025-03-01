@@ -208,7 +208,7 @@ function sortPosts() {
 }
 
 // Apply filter with loading indicator
-function applyFilter(filterValue) {
+async function applyFilter(filterValue) {
     // If not provided, get from input
     if (!filterValue) {
         filterValue = document.getElementById('filter-input').value.trim();
@@ -216,16 +216,49 @@ function applyFilter(filterValue) {
     
     // Show loading indicator
     const feedContainer = document.getElementById('feed-container');
-    feedContainer.innerHTML = '<div class="loading">Filtering posts...</div>';
+    feedContainer.innerHTML = '<div class="loading">Searching for relevant posts...</div>';
     
-    // Apply filter
-    filterPosts(filterValue);
-    
-    // Sort posts
-    sortPosts();
-    
-    // Render posts
-    renderPosts();
+    try {
+        // Use the user_posts_output.py script to find relevant posts
+        const result = await BackendConnector.searchPosts(filterValue);
+        
+        if (result && result.success && result.posts && result.posts.length > 0) {
+            // Update the feed state with the search results
+            feedState.filteredPosts = result.posts;
+            
+            // Add to recent searches
+            if (filterValue.length > 0) {
+                feedState.recentSearches.add(filterValue);
+                updateSearchSuggestions();
+                saveSearchSuggestions();
+            }
+            
+            // Sort posts
+            sortPosts();
+            
+            // Render posts
+            renderPosts();
+        } else {
+            // If no results from the search API, fall back to client-side filtering
+            console.log('No results from search API, falling back to client-side filtering');
+            
+            // Apply filter
+            filterPosts(filterValue);
+            
+            // Sort posts
+            sortPosts();
+            
+            // Render posts
+            renderPosts();
+        }
+    } catch (error) {
+        console.error('Error searching posts:', error);
+        
+        // Fall back to client-side filtering
+        filterPosts(filterValue);
+        sortPosts();
+        renderPosts();
+    }
 }
 
 // Render posts in the feed

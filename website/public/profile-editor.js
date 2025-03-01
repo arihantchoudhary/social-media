@@ -132,14 +132,73 @@ document.addEventListener('DOMContentLoaded', () => {
     loadSavedProfileData();
 });
 
-// Load saved profile data from localStorage
-function loadSavedProfileData() {
+// Load saved profile data from the server
+async function loadSavedProfileData() {
+    try {
+        // First try to load profile from the server
+        console.log('Loading saved profile data from server');
+        
+        try {
+            // Fetch profile from the server
+            const response = await fetch('/api/get-profile');
+            
+            if (response.ok) {
+                const result = await response.json();
+                
+                if (result.success && result.profile) {
+                    const profile = result.profile;
+                    
+                    // Update the profile state
+                    profileState.profile = { ...profileState.profile, ...profile };
+                    
+                    // Fill in the form fields
+                    document.getElementById('profile-name').value = profile.name || '';
+                    document.getElementById('profile-age').value = profile.age || '';
+                    document.getElementById('profile-location').value = profile.location || '';
+                    document.getElementById('profile-occupation').value = profile.occupation || '';
+                    
+                    if (profile.interests && Array.isArray(profile.interests)) {
+                        document.getElementById('profile-interests').value = profile.interests.join(', ');
+                    }
+                    
+                    if (profile.likes && Array.isArray(profile.likes)) {
+                        document.getElementById('profile-likes').value = profile.likes.join('\n');
+                    }
+                    
+                    if (profile.dislikes && Array.isArray(profile.dislikes)) {
+                        document.getElementById('profile-dislikes').value = profile.dislikes.join('\n');
+                    }
+                    
+                    // Fill in the full profile if available
+                    if (profile.fullProfile) {
+                        document.getElementById('profile-full').value = profile.fullProfile;
+                    }
+                    
+                    console.log('Successfully loaded profile from server');
+                }
+            } else {
+                console.warn('Failed to load profile from server, falling back to localStorage');
+                loadProfileFromLocalStorage();
+            }
+        } catch (error) {
+            console.error('Error fetching profile from server:', error);
+            console.warn('Falling back to localStorage');
+            loadProfileFromLocalStorage();
+        }
+        
+        // Load settings and accounts from localStorage (these are still stored there)
+        loadSettingsAndAccountsFromLocalStorage();
+    } catch (error) {
+        console.error('Error loading saved profile data:', error);
+    }
+}
+
+// Load profile from localStorage as a fallback
+function loadProfileFromLocalStorage() {
     try {
         // Check if we have saved profile data
         const savedProfile = localStorage.getItem('userProfile');
         const savedProfileText = localStorage.getItem('userProfileText');
-        const savedSettings = localStorage.getItem('userSettings');
-        const savedAccounts = localStorage.getItem('socialMediaAccounts');
         
         if (savedProfile) {
             console.log('Loading saved profile data from localStorage');
@@ -177,6 +236,16 @@ function loadSavedProfileData() {
                 }
             }
         }
+    } catch (error) {
+        console.error('Error loading profile from localStorage:', error);
+    }
+}
+
+// Load settings and accounts from localStorage
+function loadSettingsAndAccountsFromLocalStorage() {
+    try {
+        const savedSettings = localStorage.getItem('userSettings');
+        const savedAccounts = localStorage.getItem('socialMediaAccounts');
         
         // Load saved social media accounts
         if (savedAccounts) {
@@ -233,7 +302,7 @@ function loadSavedProfileData() {
             }
         }
     } catch (error) {
-        console.error('Error loading saved profile data:', error);
+        console.error('Error loading settings and accounts from localStorage:', error);
     }
 }
 

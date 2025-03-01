@@ -58,17 +58,21 @@ def load_user_profile():
         print(f"Error loading base user profile: {e}")
         return None
 
+import requests
+import json
+from typing import List
+
 def keyword_finder_llm(user_query: str, keywords: List[str], user_profile: str = None) -> List[str]:
     """
     Call the LLM to find which of the existing keywords are most relevant to the user query.
     
     Args:
-        user_query: The user's query string describing what content they're looking for
-        keywords: List of available keywords from keywords.txt
-        user_profile: Optional user profile to help with keyword selection
+        user_query: The user's query string describing what content they're looking for.
+        keywords: List of available keywords from keywords.txt.
+        user_profile: Optional user profile to help with keyword selection.
         
     Returns:
-        List of the most relevant keywords from the available keywords list
+        List of the most relevant keywords from the available keywords list.
     """
     headers = {
         "Authorization": f"Bearer {OPENROUTER_API_KEY}",
@@ -78,26 +82,26 @@ def keyword_finder_llm(user_query: str, keywords: List[str], user_profile: str =
     # Format the keywords as a comma-separated string
     keywords_str = ", ".join(keywords)
     
+    # Pre-compute the user profile text to avoid backslashes in the f-string expression
+    user_profile_text = ("USER PROFILE:\n" + user_profile + "\n\n") if user_profile else ""
+    
     data = {
         "model": MODEL,
         "messages": [
             {
                 "role": "system",
-                "content": f"""You are a keyword matching assistant. Given a user query and a list of available keywords, 
-                identify which of the existing keywords are most relevant to the user's query.
-                
-                Available keywords: {keywords_str}
-                
-                {f"USER PROFILE:\n{user_profile}\n\n" if user_profile else ""}
-                
-                IMPORTANT: You must return a MINIMUM of 2 and a MAXIMUM of 5 keywords, even if they are only somewhat related.
-                Always select the most relevant keywords possible from the available list.
-                
-                If a user profile is provided, consider the user's interests and preferences when selecting keywords.
-                
-                Return only the relevant keywords as a JSON array of strings, with no additional text or explanation.
-                Only return keywords from the provided list.
-                """
+                "content": f"""You are a keyword matching assistant. Given a user query and a list of available keywords, identify which of the existing keywords are most relevant to the user's query.
+
+Available keywords: {keywords_str}
+
+{user_profile_text}IMPORTANT: You must return a MINIMUM of 2 and a MAXIMUM of 5 keywords, even if they are only somewhat related.
+Always select the most relevant keywords possible from the available list.
+
+If a user profile is provided, consider the user's interests and preferences when selecting keywords.
+
+Return only the relevant keywords as a JSON array of strings, with no additional text or explanation.
+Only return keywords from the provided list.
+"""
             },
             {
                 "role": "user",
@@ -128,6 +132,7 @@ def keyword_finder_llm(user_query: str, keywords: List[str], user_profile: str =
     except Exception as e:
         print(f"Error calling OpenRouter API: {e}")
         return []
+
 
 def extract_keywords_from_text(text: str) -> List[str]:
     """Extract keywords from text if the API doesn't return a proper JSON array."""
@@ -609,6 +614,7 @@ if __name__ == "__main__":
     parser = argparse.ArgumentParser(description="Find and select posts based on user query.")
     parser.add_argument("--dynamic", action="store_true", help="Force regeneration of dynamic profile before searching")
     parser.add_argument("--query", help="Query for content discovery (non-interactive mode)")
+    parser.add_argument("--query-file", help="File containing the query for content discovery")
     
     args = parser.parse_args()
     
@@ -621,8 +627,23 @@ if __name__ == "__main__":
         except Exception as e:
             print(f"Error generating dynamic profile: {e}")
     
+    # Determine the query
+    query = None
+    
+    # First check if query-file is provided
+    if args.query_file:
+        try:
+            with open(args.query_file, 'r', encoding='utf-8') as f:
+                query = f.read().strip()
+            print(f"Using query from file: {query}")
+        except Exception as e:
+            print(f"Error reading query file: {e}")
+    # Then check if query is provided directly
+    elif args.query:
+        query = args.query
+    
     # Run in non-interactive mode if query is provided
-    if args.query:
-        main_with_query(args.query)
+    if query:
+        main_with_query(query)
     else:
         main()

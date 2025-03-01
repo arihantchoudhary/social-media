@@ -1,25 +1,16 @@
+
 import sqlite3
-import json
 import os
+import json
 from datetime import datetime
 
-def clean_keyword(keyword):
-    """Clean a keyword by removing JSON formatting and code block markers."""
-    # Remove JSON formatting
-    keyword = keyword.replace('```json\n', '').replace('\n```', '')
-    keyword = keyword.replace('```', '')
-    return keyword.strip()
-
 def export_keywords(db_file='x_com_posts.db', output_file='keywords.txt'):
-    """Export all unique keywords from the database to a text file."""
+    """Export keywords from the database to a text file."""
     try:
         # Connect to the database
         conn = sqlite3.connect(db_file)
         conn.row_factory = sqlite3.Row
         cursor = conn.cursor()
-        
-        # Get all unique keywords
-        all_keywords = set()
         
         # Check if keywords table exists
         cursor.execute("SELECT name FROM sqlite_master WHERE type='table' AND name='keywords';")
@@ -27,83 +18,47 @@ def export_keywords(db_file='x_com_posts.db', output_file='keywords.txt'):
             print("No 'keywords' table found in the database.")
             
             # Try to extract keywords from posts table instead
-            print("Attempting to extract keywords from posts table...")
-            cursor.execute("PRAGMA table_info(posts)")
-            columns = [column[1] for column in cursor.fetchall()]
-            
-            if "keywords" not in columns:
-                print("No 'keywords' column found in posts table.")
+            cursor.execute("SELECT name FROM sqlite_master WHERE type='table' AND name='posts';")
+            if not cursor.fetchone():
+                print("No 'posts' table found in the database.")
                 return
             
-            # Extract unique keywords from posts table
-            cursor.execute("SELECT keywords FROM posts WHERE keywords IS NOT NULL AND keywords != ''")
+            print("Extracting keywords from posts table...")
             
-            for row in cursor.fetchall():
+            # Get all posts with keywords
+            cursor.execute("SELECT keywords FROM posts WHERE keywords IS NOT NULL AND keywords != ''")
+            posts = cursor.fetchall()
+            
+            # Extract unique keywords
+            all_keywords = set()
+            for post in posts:
                 try:
-                    keywords = json.loads(row['keywords'])
-                    if isinstance(keywords, list):
-                        for keyword in keywords:
-                            all_keywords.add(clean_keyword(keyword))
-                except (json.JSONDecodeError, TypeError):
-                    continue
-        else:
-            # Extract keywords from keywords table
-            cursor.execute("SELECT keyword FROM keywords")
-            for row in cursor.fetchall():
-                all_keywords.add(clean_keyword(row['keyword']))
+                    keywords_json = post['keywords']
+                    if keywords_json:
+                        keywords = json.loads(keywords_json)
+                        if isinstance(keywords, list):
+                            all_keywords.update(keywords)
+                except (json.JSONDecodeError, TypeError) as e:
+                    print(f"Error parsing keywords: {e}")
+            
+            # Write keywords to file
+            with open(output_file, 'w', encoding='utf-8') as f:
+                for keyword in sorted(all_keywords):
+                    f.write(f"{keyword}\n")
+            
+            print(f"Exported {len(all_keywords)} unique keywords to {output_file}")
+            return
         
-        # Sort keywords alphabetically
-        sorted_keywords = sorted(all_keywords)
+        # Get all keywords ordered by frequency
+        cursor.execute("SELECT keyword FROM keywords ORDER BY frequency DESC")
+        keywords = cursor.fetchall()
         
         # Write keywords to file
         with open(output_file, 'w', encoding='utf-8') as f:
-            for keyword in sorted_keywords:
-                f.write(f"{keyword}\n")
+            for keyword in keywords:
+                f.write(f"{keyword['keyword']}\n")
         
-        print(f"Successfully exported {len(sorted_keywords)} unique keywords to {output_file}")
-        
-        # Also create a JSON file with more information
-        json_output_file = os.path.splitext(output_file)[0] + '.json'
-        
-        # Get keywords with frequency if available
-        if cursor.execute("SELECT name FROM sqlite_master WHERE type='table' AND name='keywords';").fetchone():
-            cursor.execute("SELECT keyword, frequency, first_seen_at FROM keywords ORDER BY frequency DESC")
-            
-            # Use a dictionary to merge duplicate keywords
-            keyword_dict = {}
-            
-            for row in cursor.fetchall():
-                clean_kw = clean_keyword(row['keyword'])
-                
-                if clean_kw in keyword_dict:
-                    # Update existing entry
-                    keyword_dict[clean_kw]['frequency'] += row['frequency']
-                    # Keep the earliest first_seen_at
-                    if row['first_seen_at'] < keyword_dict[clean_kw]['first_seen_at']:
-                        keyword_dict[clean_kw]['first_seen_at'] = row['first_seen_at']
-                else:
-                    # Create new entry
-                    keyword_dict[clean_kw] = {
-                        'keyword': clean_kw,
-                        'frequency': row['frequency'],
-                        'first_seen_at': row['first_seen_at']
-                    }
-            
-            # Convert dictionary to list and sort by frequency
-            keywords_with_info = sorted(
-                keyword_dict.values(), 
-                key=lambda x: x['frequency'], 
-                reverse=True
-            )
-        
-            with open(json_output_file, 'w', encoding='utf-8') as f:
-                json.dump({
-                    'exported_at': datetime.now().isoformat(),
-                    'total_keywords': len(keywords_with_info),
-                    'keywords': keywords_with_info
-                }, f, indent=2)
-            
-            print(f"Also exported detailed keyword information to {json_output_file}")
+        print(f"Exported {len(keywords)} keywords to {output_file}")
         
         conn.close()
         
@@ -115,7 +70,7 @@ def export_keywords(db_file='x_com_posts.db', output_file='keywords.txt'):
 if __name__ == "__main__":
     import argparse
     
-    parser = argparse.ArgumentParser(description="Export keywords from the database to a file.")
+    parser = argparse.ArgumentParser(description="Export keywords from the database to a text file.")
     parser.add_argument("--db", default="x_com_posts.db", help="Database file path")
     parser.add_argument("--output", default="keywords.txt", help="Output file path")
     
