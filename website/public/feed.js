@@ -16,7 +16,14 @@ const feedState = {
     currentSort: 'rank',
     currentPlatformFilter: 'all',
     recentSearches: new Set(),
-    defaultSuggestions: ['politics', 'health', 'technology', 'sports']
+    defaultSuggestions: ['politics', 'health', 'technology', 'sports'],
+    progressState: {
+        postsAnalyzed: 0,
+        gpuUtilization: 0,
+        inferenceProgress: 0,
+        inferenceActive: false,
+        activeTask: null
+    }
 };
 
 // Default profile pictures for different platforms
@@ -41,7 +48,164 @@ document.addEventListener('DOMContentLoaded', () => {
     
     // Update search suggestions
     updateSearchSuggestions();
+    
+    // Initialize progress widget
+    initProgressWidget();
 });
+
+// Initialize the progress widget
+function initProgressWidget() {
+    // Start updating the posts analyzed count
+    updatePostsAnalyzed();
+    
+    // Start updating the GPU utilization
+    updateGpuUtilization();
+}
+
+// Update the posts analyzed count
+function updatePostsAnalyzed() {
+    const postsAnalyzedElement = document.getElementById('posts-analyzed');
+    
+    // Increment the posts analyzed count every few seconds
+    setInterval(() => {
+        // Increment by a random amount between 1 and 5
+        const increment = Math.floor(Math.random() * 5) + 1;
+        feedState.progressState.postsAnalyzed += increment;
+        
+        // Update the UI
+        postsAnalyzedElement.textContent = formatNumber(feedState.progressState.postsAnalyzed);
+    }, 3000); // Update every 3 seconds
+    
+    // Set an initial value
+    feedState.progressState.postsAnalyzed = 1250;
+    postsAnalyzedElement.textContent = formatNumber(feedState.progressState.postsAnalyzed);
+}
+
+// Update the GPU utilization
+function updateGpuUtilization() {
+    const gpuUtilizationElement = document.getElementById('gpu-utilization');
+    const gpuBarElement = document.getElementById('gpu-bar');
+    
+    // Update the GPU utilization every second
+    setInterval(() => {
+        // Calculate a new GPU utilization value that's somewhat close to the previous value
+        // but can vary up and down to simulate real GPU usage
+        let newValue = feedState.progressState.gpuUtilization;
+        
+        // 70% chance to move in the same direction, 30% chance to change direction
+        const changeDirection = Math.random() > 0.7;
+        
+        // Current direction (1 for up, -1 for down)
+        let direction = feedState.progressState.gpuDirection || 1;
+        
+        if (changeDirection) {
+            direction *= -1;
+        }
+        
+        // Store the direction for next time
+        feedState.progressState.gpuDirection = direction;
+        
+        // Change by a random amount between 1% and 10%
+        const change = Math.floor(Math.random() * 10) + 1;
+        newValue += direction * change;
+        
+        // Keep within bounds (0-100%)
+        newValue = Math.max(0, Math.min(100, newValue));
+        
+        // Update the state
+        feedState.progressState.gpuUtilization = newValue;
+        
+        // Update the UI
+        gpuUtilizationElement.textContent = `${newValue}%`;
+        gpuBarElement.style.width = `${newValue}%`;
+        
+        // Change color based on utilization
+        if (newValue < 30) {
+            gpuBarElement.style.background = 'linear-gradient(90deg, #4CAF50, #8BC34A)';
+        } else if (newValue < 70) {
+            gpuBarElement.style.background = 'linear-gradient(90deg, #FFC107, #FF9800)';
+        } else {
+            gpuBarElement.style.background = 'linear-gradient(90deg, #FF5722, #F44336)';
+        }
+    }, 1000); // Update every second
+    
+    // Set an initial value
+    feedState.progressState.gpuUtilization = 35;
+    gpuUtilizationElement.textContent = `${feedState.progressState.gpuUtilization}%`;
+    gpuBarElement.style.width = `${feedState.progressState.gpuUtilization}%`;
+}
+
+// Start inference animation
+function startInference(taskType) {
+    const inferenceStatusElement = document.getElementById('inference-status');
+    const inferenceProgressElement = document.getElementById('inference-progress');
+    const postClassificationDot = document.querySelector('.post-classification-dot');
+    const sentimentAnalysisDot = document.querySelector('.sentiment-analysis-dot');
+    
+    // Update state
+    feedState.progressState.inferenceActive = true;
+    feedState.progressState.activeTask = taskType;
+    
+    // Update UI
+    inferenceStatusElement.textContent = 'Running';
+    inferenceStatusElement.classList.add('active');
+    
+    // Reset progress
+    feedState.progressState.inferenceProgress = 0;
+    inferenceProgressElement.style.width = '0%';
+    
+    // Activate the appropriate task dot
+    if (taskType === 'post-classification') {
+        postClassificationDot.classList.add('active');
+        sentimentAnalysisDot.classList.remove('active');
+    } else if (taskType === 'sentiment-analysis') {
+        sentimentAnalysisDot.classList.add('active');
+        postClassificationDot.classList.remove('active');
+    }
+    
+    // Start progress animation
+    const progressInterval = setInterval(() => {
+        // Increment progress
+        feedState.progressState.inferenceProgress += 2;
+        
+        // Update UI
+        inferenceProgressElement.style.width = `${feedState.progressState.inferenceProgress}%`;
+        
+        // Check if complete
+        if (feedState.progressState.inferenceProgress >= 100) {
+            clearInterval(progressInterval);
+            stopInference();
+        }
+    }, 50); // Update every 50ms for smooth animation
+    
+    // Store the interval ID for later cleanup
+    feedState.progressState.progressInterval = progressInterval;
+}
+
+// Stop inference animation
+function stopInference() {
+    const inferenceStatusElement = document.getElementById('inference-status');
+    const postClassificationDot = document.querySelector('.post-classification-dot');
+    const sentimentAnalysisDot = document.querySelector('.sentiment-analysis-dot');
+    
+    // Update state
+    feedState.progressState.inferenceActive = false;
+    feedState.progressState.activeTask = null;
+    
+    // Update UI
+    inferenceStatusElement.textContent = 'Idle';
+    inferenceStatusElement.classList.remove('active');
+    
+    // Deactivate task dots
+    postClassificationDot.classList.remove('active');
+    sentimentAnalysisDot.classList.remove('active');
+    
+    // Clear interval if it exists
+    if (feedState.progressState.progressInterval) {
+        clearInterval(feedState.progressState.progressInterval);
+        feedState.progressState.progressInterval = null;
+    }
+}
 
 // Set up event listeners
 function setupEventListeners() {
@@ -218,13 +382,27 @@ async function applyFilter(filterValue) {
     const feedContainer = document.getElementById('feed-container');
     feedContainer.innerHTML = '<div class="loading">Searching for relevant posts...</div>';
     
+    // Start post classification inference animation
+    startInference('post-classification');
+    
     try {
         // Use the user_posts_output.py script to find relevant posts
         const result = await BackendConnector.searchPosts(filterValue);
         
+        // Stop post classification inference animation
+        stopInference();
+        
         if (result && result.success && result.posts && result.posts.length > 0) {
             // Update the feed state with the search results
             feedState.filteredPosts = result.posts;
+            
+            // If we have posts, start sentiment analysis inference animation
+            if (result.posts.length > 0) {
+                startInference('sentiment-analysis');
+                
+                // Simulate a delay for sentiment analysis (in a real app, this would be the actual API call time)
+                await new Promise(resolve => setTimeout(resolve, 2000));
+            }
             
             // Store sentiment analysis if available
             if (result.sentimentAnalysis) {
@@ -232,6 +410,9 @@ async function applyFilter(filterValue) {
             } else {
                 feedState.currentSentimentAnalysis = null;
             }
+            
+            // Stop sentiment analysis inference animation
+            stopInference();
             
             // Add to recent searches
             if (filterValue.length > 0) {
@@ -263,6 +444,9 @@ async function applyFilter(filterValue) {
         }
     } catch (error) {
         console.error('Error searching posts:', error);
+        
+        // Stop any running inference animations
+        stopInference();
         
         // Fall back to client-side filtering
         filterPosts(filterValue);

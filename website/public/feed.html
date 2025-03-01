@@ -51,6 +51,44 @@
             </div>
         </header>
         
+        <!-- Progress Widget -->
+        <div class="progress-widget">
+            <h2>System Status</h2>
+            <div class="progress-stats">
+                <div class="stat-item">
+                    <div class="stat-label">Posts Scraped & Analyzed</div>
+                    <div class="stat-value" id="posts-analyzed">0</div>
+                    <div class="stat-subtitle">Offline Inference</div>
+                </div>
+                <div class="stat-item">
+                    <div class="stat-label">GPU Utilization</div>
+                    <div class="stat-value" id="gpu-utilization">0%</div>
+                    <div class="gpu-bar-container">
+                        <div class="gpu-bar" id="gpu-bar"></div>
+                    </div>
+                </div>
+            </div>
+            <div class="live-inference">
+                <div class="inference-header">
+                    <div class="inference-label">Live Inference</div>
+                    <div class="inference-status" id="inference-status">Idle</div>
+                </div>
+                <div class="inference-progress-container">
+                    <div class="inference-progress" id="inference-progress"></div>
+                </div>
+                <div class="inference-tasks">
+                    <div class="task-item">
+                        <div class="task-dot post-classification-dot"></div>
+                        <div class="task-label">Post Classification</div>
+                    </div>
+                    <div class="task-item">
+                        <div class="task-dot sentiment-analysis-dot"></div>
+                        <div class="task-label">Sentiment Analysis</div>
+                    </div>
+                </div>
+            </div>
+        </div>
+        
         <main>
             <div class="feed" id="feed-container">
                 <div class="loading">Loading your personalized feed...</div>

@@ -159,6 +159,170 @@ main {
     gap: 20px;
 }
 
+/* Progress Widget Styles */
+.progress-widget {
+    background-color: white;
+    border-radius: 10px;
+    padding: 20px;
+    margin-bottom: 25px;
+    box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
+}
+
+.progress-widget h2 {
+    font-size: 18px;
+    color: #333;
+    margin-top: 0;
+    margin-bottom: 15px;
+}
+
+.progress-stats {
+    display: flex;
+    justify-content: space-between;
+    margin-bottom: 20px;
+}
+
+.stat-item {
+    flex: 1;
+    padding: 0 15px;
+    border-right: 1px solid #eee;
+}
+
+.stat-item:last-child {
+    border-right: none;
+}
+
+.stat-label {
+    font-size: 14px;
+    color: #666;
+    margin-bottom: 5px;
+}
+
+.stat-value {
+    font-size: 24px;
+    font-weight: 600;
+    color: #333;
+    margin-bottom: 5px;
+}
+
+.stat-subtitle {
+    font-size: 12px;
+    color: #999;
+}
+
+.gpu-bar-container {
+    height: 8px;
+    background-color: #f0f0f0;
+    border-radius: 4px;
+    overflow: hidden;
+    margin-top: 10px;
+}
+
+.gpu-bar {
+    height: 100%;
+    width: 0%;
+    background: linear-gradient(90deg, #4CAF50, #8BC34A);
+    border-radius: 4px;
+    transition: width 0.5s ease;
+}
+
+.live-inference {
+    background-color: #f9f9f9;
+    border-radius: 8px;
+    padding: 15px;
+}
+
+.inference-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    margin-bottom: 10px;
+}
+
+.inference-label {
+    font-size: 14px;
+    font-weight: 600;
+    color: #333;
+}
+
+.inference-status {
+    font-size: 14px;
+    padding: 3px 10px;
+    border-radius: 12px;
+    background-color: #eee;
+    color: #666;
+}
+
+.inference-status.active {
+    background-color: rgba(76, 175, 80, 0.1);
+    color: #4CAF50;
+}
+
+.inference-progress-container {
+    height: 6px;
+    background-color: #e0e0e0;
+    border-radius: 3px;
+    overflow: hidden;
+    margin-bottom: 15px;
+}
+
+.inference-progress {
+    height: 100%;
+    width: 0%;
+    background: linear-gradient(90deg, #2196F3, #03A9F4);
+    border-radius: 3px;
+    transition: width 0.3s ease;
+}
+
+.inference-tasks {
+    display: flex;
+    gap: 20px;
+}
+
+.task-item {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+}
+
+.task-dot {
+    width: 10px;
+    height: 10px;
+    border-radius: 50%;
+    background-color: #ccc;
+}
+
+.task-dot.active {
+    animation: pulse 1.5s infinite;
+}
+
+.post-classification-dot.active {
+    background-color: #2196F3;
+}
+
+.sentiment-analysis-dot.active {
+    background-color: #9C27B0;
+}
+
+.task-label {
+    font-size: 12px;
+    color: #666;
+}
+
+@keyframes pulse {
+    0% {
+        transform: scale(1);
+        opacity: 1;
+    }
+    50% {
+        transform: scale(1.2);
+        opacity: 0.7;
+    }
+    100% {
+        transform: scale(1);
+        opacity: 1;
+    }
+}
+
 /* Sentiment Analysis Styles */
 .sentiment-analysis-container {
     background-color: white;
