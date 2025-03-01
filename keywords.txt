@@ -1,41 +1,41 @@
-President
-Donald Trump
-Commander-in-Chief
-Sleep Elixir
-US
-hospitality
-Ukraine
-Joe Rogan
-Tesla
-JB Straubel
-vehicles
+reminder
+happen
 ```json
-Vance
-Zelenskyy
+Vibe Coder
+voice-driven coding
+open-source
+#vibecoding
+```
+ChatGPT 4.5
+decimal mistake
+reasoning
+data
+```json
+news site
+lie
+famous
+public perception
+```
+fools
+fanatics
+wiser people
+doubts
+Bertrand Russell
+GPT-4.5
+machine learning
+systems
+Colin Wei
+Yujia Jin
+```json
+Marco Rubio
+Oval Office
 Trump
+Zelensky
 ```
-UK
-POTUS
-```json
-President Trump
-weapon shipments
-support
-```
-```json
-Elon Musk
-interview
-```
-electric vehicles
-future
-```json
-UK
-POTUS
-```
-President Trump
-halted weapon shipments
-Elon Musk
-interview
-```json
-electric vehicles
-future
-```
+Ramadan
+Mubarak
+observing
+Zelensky
+memes
+comments
+media

@@ -3,7 +3,7 @@
 ## Personal Information
 - Name: Parth Behani
 - Age: 23
-- Location: Berkeley, SF
+- Location: Berkeley, CA
 - Occupation: Student
 
 ## Interests

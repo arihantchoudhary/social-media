@@ -52,7 +52,7 @@ def run_sql_file(sql_file_path, db_file_path):
 
 if __name__ == "__main__":
     # File paths
-    sql_file = "insert_posts.sql"
+    sql_file = "insert_more_posts.sql"
     db_file = "x_com_posts.db"
     
     # Check if the SQL file exists

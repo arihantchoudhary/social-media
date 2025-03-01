@@ -396,7 +396,7 @@ llm = ChatOpenAI(model="gpt-4o", temperature=0.0)
 # Global variable to store the agent instance
 agent_instance = None
 
-async def main_job(post_count: int = 10):
+async def main_job(post_count: int = 25):
     global agent_instance
     
     # Create an agent if it doesn't exist, or reuse the existing one
