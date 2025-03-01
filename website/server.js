@@ -519,7 +519,45 @@ app.post('/api/search-posts', (req, res) => {
                         };
                     });
                     
-                    res.json({ success: true, posts: posts });
+                    // Run sentiment analysis on the posts
+                    console.log('Running sentiment analysis on the posts...');
+                    const sentimentCommand = `python ${path.join(__dirname, '..', 'sentiment_analysis.py')} "${query}"`;
+                    
+                    exec(sentimentCommand, (sentimentError, sentimentStdout, sentimentStderr) => {
+                        let sentimentAnalysis = {
+                            summary: "Sentiment analysis not available.",
+                            sentiment: "neutral",
+                            sentiment_score: 50,
+                            key_points: []
+                        };
+                        
+                        if (sentimentError) {
+                            console.error(`Error executing sentiment analysis: ${sentimentError.message}`);
+                        } else {
+                            if (sentimentStderr) {
+                                console.error(`Sentiment analysis stderr: ${sentimentStderr}`);
+                            }
+                            
+                            console.log(`Sentiment analysis output: ${sentimentStdout}`);
+                            
+                            // Try to extract the JSON result from the output
+                            try {
+                                const jsonMatch = sentimentStdout.match(/\{[\s\S]*\}/);
+                                if (jsonMatch) {
+                                    sentimentAnalysis = JSON.parse(jsonMatch[0]);
+                                }
+                            } catch (e) {
+                                console.error(`Error parsing sentiment analysis output: ${e}`);
+                            }
+                        }
+                        
+                        // Return both the posts and the sentiment analysis
+                        res.json({ 
+                            success: true, 
+                            posts: posts,
+                            sentimentAnalysis: sentimentAnalysis
+                        });
+                    });
                 }
             );
         });

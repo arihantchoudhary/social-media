@@ -226,6 +226,13 @@ async function applyFilter(filterValue) {
             // Update the feed state with the search results
             feedState.filteredPosts = result.posts;
             
+            // Store sentiment analysis if available
+            if (result.sentimentAnalysis) {
+                feedState.currentSentimentAnalysis = result.sentimentAnalysis;
+            } else {
+                feedState.currentSentimentAnalysis = null;
+            }
+            
             // Add to recent searches
             if (filterValue.length > 0) {
                 feedState.recentSearches.add(filterValue);
@@ -236,7 +243,7 @@ async function applyFilter(filterValue) {
             // Sort posts
             sortPosts();
             
-            // Render posts
+            // Render posts with sentiment analysis
             renderPosts();
         } else {
             // If no results from the search API, fall back to client-side filtering
@@ -248,6 +255,9 @@ async function applyFilter(filterValue) {
             // Sort posts
             sortPosts();
             
+            // Clear sentiment analysis
+            feedState.currentSentimentAnalysis = null;
+            
             // Render posts
             renderPosts();
         }
@@ -257,8 +267,57 @@ async function applyFilter(filterValue) {
         // Fall back to client-side filtering
         filterPosts(filterValue);
         sortPosts();
+        feedState.currentSentimentAnalysis = null;
         renderPosts();
     }
+}
+
+// Render sentiment analysis summary
+function renderSentimentAnalysis() {
+    const { currentSentimentAnalysis } = feedState;
+    
+    // If no sentiment analysis is available, return null
+    if (!currentSentimentAnalysis) {
+        return null;
+    }
+    
+    // Create sentiment analysis container
+    const sentimentContainer = document.createElement('div');
+    sentimentContainer.className = 'sentiment-analysis-container';
+    
+    // Determine sentiment class based on sentiment score
+    let sentimentClass = 'neutral';
+    if (currentSentimentAnalysis.sentiment_score >= 70) {
+        sentimentClass = 'positive';
+    } else if (currentSentimentAnalysis.sentiment_score <= 30) {
+        sentimentClass = 'negative';
+    } else if (currentSentimentAnalysis.sentiment === 'mixed') {
+        sentimentClass = 'mixed';
+    }
+    
+    // Create HTML for sentiment analysis
+    sentimentContainer.innerHTML = `
+        <div class="sentiment-header">
+            <h2>Sentiment Analysis</h2>
+            <div class="sentiment-badge ${sentimentClass}">
+                ${currentSentimentAnalysis.sentiment.toUpperCase()}
+                <span class="sentiment-score">${currentSentimentAnalysis.sentiment_score}/100</span>
+            </div>
+        </div>
+        <div class="sentiment-summary">
+            <p>${currentSentimentAnalysis.summary}</p>
+        </div>
+        <div class="sentiment-key-points">
+            <h3>Key Points:</h3>
+            <ul>
+                ${currentSentimentAnalysis.key_points ? 
+                    currentSentimentAnalysis.key_points.map(point => `<li>${point}</li>`).join('') : 
+                    '<li>No key points available</li>'}
+            </ul>
+        </div>
+    `;
+    
+    return sentimentContainer;
 }
 
 // Render posts in the feed
@@ -271,6 +330,12 @@ function renderPosts() {
     if (filteredPosts.length === 0) {
         feedContainer.innerHTML = '<div class="no-results">No posts match your criteria. Try adjusting your filters.</div>';
         return;
+    }
+    
+    // Render sentiment analysis if available
+    const sentimentElement = renderSentimentAnalysis();
+    if (sentimentElement) {
+        feedContainer.appendChild(sentimentElement);
     }
     
     // Get the post template
