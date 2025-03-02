@@ -151,7 +151,7 @@ app.post('/api/start-scraping', (req, res) => {
         const { accounts, postCount } = req.body;
         
         // Execute the social_media_scraper.py script
-        const command = `python ${path.join(__dirname, '..', 'social_media_scraper.py')} --count=${postCount || 10}`;
+        const command = `cd "${path.join(__dirname, '..')}" && python ${path.join(__dirname, '..', 'core', 'social_media_scraper.py')} --count=${postCount || 10}`;
         
         exec(command, (error, stdout, stderr) => {
             if (error) {
@@ -176,7 +176,7 @@ app.post('/api/start-scraping', (req, res) => {
 app.post('/api/generate-keywords', (req, res) => {
     try {
         // Execute the generate_keywords.py script
-        const command = `python ${path.join(__dirname, '..', 'generate_keywords.py')}`;
+        const command = `cd "${path.join(__dirname, '..')}" && python ${path.join(__dirname, '..', 'core', 'generate_keywords.py')}`;
         
         exec(command, (error, stdout, stderr) => {
             if (error) {
@@ -225,7 +225,7 @@ app.post('/api/save-settings', (req, res) => {
 app.post('/api/rank-posts', (req, res) => {
     try {
         // Execute the ranking_llm.py script
-        const command = `python ${path.join(__dirname, '..', 'ranking_llm.py')}`;
+        const command = `cd "${path.join(__dirname, '..')}" && python ${path.join(__dirname, '..', 'core', 'ranking_llm.py')}`;
         
         // Set environment variables to pass the user profile
         const env = { ...process.env };
@@ -256,7 +256,7 @@ app.post('/api/rank-posts', (req, res) => {
 app.post('/api/prepare-feed', (req, res) => {
     try {
         // Execute the export_keywords.py script
-        const command = `python ${path.join(__dirname, '..', 'export_keywords.py')}`;
+        const command = `python ${path.join(__dirname, '..', 'core', 'export_keywords.py')}`;
         
         exec(command, (error, stdout, stderr) => {
             if (error) {
@@ -281,7 +281,7 @@ app.post('/api/prepare-feed', (req, res) => {
 app.get('/api/fetch-posts', (req, res) => {
     try {
         // Execute the view_posts_with_keywords.py script
-        const command = `python ${path.join(__dirname, '..', 'view_posts_with_keywords.py')}`;
+        const command = `python ${path.join(__dirname, '..', 'utils', 'view_posts_with_keywords.py')} --db=${path.join(__dirname, '..', 'db', 'x_com_posts.db')}`;
         
         // Set environment variables to pass the user profile
         const env = { ...process.env };
@@ -355,7 +355,7 @@ app.post('/api/submit-feedback', (req, res) => {
                 
                 // After saving feedback, update the dynamic user profile
                 console.log('Updating dynamic user profile based on new feedback...');
-                const dynamicProfileCommand = `python ${path.join(__dirname, '..', 'dynamic_user_profile.py')} --force`;
+                const dynamicProfileCommand = `python ${path.join(__dirname, '..', 'core', 'dynamic_user_profile.py')} --force`;
                 
                 exec(dynamicProfileCommand, (error, stdout, stderr) => {
                     if (error) {
@@ -425,14 +425,14 @@ app.post('/api/search-posts', (req, res) => {
         console.log(`Searching posts with query: ${query}`);
         
         // Create a temporary file with the query to avoid command line escaping issues
-        const tempQueryFile = path.join(__dirname, '..', 'temp_query.txt');
+        const tempQueryFile = path.join(__dirname, '..', 'config', 'temp_query.txt');
         fs.writeFileSync(tempQueryFile, query);
         
         // Build the command to run user_posts_output.py with the query file
         // Use the absolute path to the script and specify the current working directory
-        const scriptPath = path.join(__dirname, '..', 'user_posts_output.py');
+        const scriptPath = path.join(__dirname, '..', 'core', 'user_posts_output.py');
         const workingDir = path.join(__dirname, '..');
-        const command = `cd "${workingDir}" && python "${scriptPath}" --query-file="${tempQueryFile}"`;
+        const command = `cd "${workingDir}" && python "${scriptPath}" --query-file="${tempQueryFile}" --db=${path.join(__dirname, '..', 'db', 'x_com_posts.db')}`;
         
         // Set environment variables to pass the user profile
         const env = { ...process.env };
@@ -521,7 +521,7 @@ app.post('/api/search-posts', (req, res) => {
                     
                     // Run sentiment analysis on the posts
                     console.log('Running sentiment analysis on the posts...');
-                    const sentimentCommand = `python ${path.join(__dirname, '..', 'sentiment_analysis.py')} "${query}"`;
+                    const sentimentCommand = `python ${path.join(__dirname, '..', 'core', 'sentiment_analysis.py')} "${query}"`;
                     
                     exec(sentimentCommand, (sentimentError, sentimentStdout, sentimentStderr) => {
                         let sentimentAnalysis = {
@@ -754,16 +754,6 @@ function parsePostsFromOutput(output) {
                 const image_url = imageUrlMatch && imageUrlMatch[1] !== 'None' ? imageUrlMatch[1] : null;
                 const post_text = textMatch ? textMatch[1].trim() : '';
                 
-                // Determine platform from URL
-                let platform = 'unknown';
-                if (post_url.includes('twitter.com') || post_url.includes('x.com')) {
-                    platform = 'twitter';
-                } else if (post_url.includes('instagram.com')) {
-                    platform = 'instagram';
-                } else if (post_url.includes('facebook.com')) {
-                    platform = 'facebook';
-                }
-                
                 // Check for keywords
                 let keywords = [];
                 const keywordsMatch = block.match(/Keywords: ([^\n]+)/);
@@ -780,6 +770,16 @@ function parsePostsFromOutput(output) {
                     } catch (e) {
                         console.error('Error parsing keywords:', e);
                     }
+                }
+                
+                // Determine platform from URL
+                let platform = 'unknown';
+                if (post_url.includes('twitter.com') || post_url.includes('x.com')) {
+                    platform = 'twitter';
+                } else if (post_url.includes('instagram.com')) {
+                    platform = 'instagram';
+                } else if (post_url.includes('facebook.com')) {
+                    platform = 'facebook';
                 }
                 
                 // Add the post to the array
@@ -856,7 +856,7 @@ function scheduleAutomaticScraping() {
         console.log(`Running scheduled scraping (${scrapingFrequency})`);
         
         // Build the command
-        const command = `python ${path.join(__dirname, '..', 'social_media_scraper.py')} --count=${postCount || 10}`;
+        const command = `cd "${path.join(__dirname, '..')}" && python ${path.join(__dirname, '..', 'core', 'social_media_scraper.py')} --count=${postCount || 10}`;
         
         // Execute the command
         exec(command, (error, stdout, stderr) => {
@@ -873,7 +873,7 @@ function scheduleAutomaticScraping() {
             
             // Generate keywords after scraping
             if (global.userSettings.autoKeywords) {
-                const keywordsCommand = `python ${path.join(__dirname, '..', 'generate_keywords.py')}`;
+                const keywordsCommand = `cd "${path.join(__dirname, '..')}" && python ${path.join(__dirname, '..', 'core', 'generate_keywords.py')}`;
                 
                 exec(keywordsCommand, (error, stdout, stderr) => {
                     if (error) {
@@ -885,7 +885,7 @@ function scheduleAutomaticScraping() {
                     
                     // Rank posts after generating keywords
                     if (global.userSettings.autoRanking) {
-                        const rankCommand = `python ${path.join(__dirname, '..', 'ranking_llm.py')}`;
+                        const rankCommand = `python ${path.join(__dirname, '..', 'core', 'ranking_llm.py')}`;
                         
                         // Set environment variables to pass the user profile
                         const env = { ...process.env };
@@ -909,7 +909,7 @@ function scheduleAutomaticScraping() {
     
     // Also run once immediately
     console.log('Running initial scraping...');
-    const command = `python ${path.join(__dirname, '..', 'social_media_scraper.py')} --count=${postCount || 10}`;
+    const command = `cd "${path.join(__dirname, '..')}" && python ${path.join(__dirname, '..', 'core', 'social_media_scraper.py')} --count=${postCount || 10}`;
     
     exec(command, (error, stdout, stderr) => {
         if (error) {
